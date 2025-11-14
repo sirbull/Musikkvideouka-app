@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Live Avstemming</title>
+  <link rel="stylesheet" href="adminstyle.css">
+</head>
+<body>
+  <div class="container">
+    <h1>ADMIN - MUSIKKVIDEOUKA</h1>
+
+    <!-- Opplasting av Excel-fil -->
+    <div class="uploader"><input type="file" id="excel-file" />
+
+    <!-- Visning av data fra Excel -->
+    <div id="output"></div>
+
+    <!-- Wrapper for knappene -->
+    <div class="button-container">
+      <!-- Ny gruppe og Last ned knapper -->
+      <button id="add-group-button">Ny gruppe</button>
+      <button id="download-button">Last ned</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="admin.js"></script>
+
+
+</body>
+</html>
+

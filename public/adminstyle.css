@@ -1,0 +1,160 @@
+body {
+  background-color: hsl(0, 0%, 95%);
+}
+
+h1 {
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 32px;
+}
+
+.uploader {
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+/* Container for gruppelinje og knapper */
+.group-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Plasserer poengsummen og knappene med plass mellom */
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.group-row img {
+  margin-right: 15px;
+}
+
+.group-row input {
+  margin-right: 10px;
+  margin-left: 10px;
+  flex: 1; /* Gjør at input-feltet kan ta plass */
+  font-size: 24px;
+}
+
+/* Poengsummen vises til høyre og er fet og stor */
+.points-display {
+  font-size: 24px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  text-align: right; /* Justerer teksten til høyre */
+  flex-shrink: 0; /* Hindrer poengvisningen fra å krympe */
+  min-width: 80px; /* Gir tilstrekkelig plass for poengsummen */
+  margin-right: 50px; /* Sørger for 50px avstand til knappene */
+}
+
+/* Oppdater-knappene skal ligge på linje og være høyrestilt */
+.update-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* Høyrestill knappene */
+  gap: 10px; /* Gir luft mellom knappene */
+}
+
+button {
+  padding: 8px 15px; /* Økt padding for høyere knapper */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Knappene som er i skjemaet ved siden av input-felt */
+.group-row button {
+  background-color: #2A403D;
+}
+
+.group-row button:hover {
+  background-color: #141f1d;
+}
+
+/* Spesifikke knapper */
+#add-group-button {
+  background-color: #d07900;
+}
+
+#add-group-button:hover {
+  background-color: #b66a00;
+}
+
+#download-button {
+  background-color: #107c41;
+}
+
+#download-button:hover {
+  background-color: #185c37;
+}
+
+/* Wrapper for knappene */
+.button-container {
+  display: flex;
+  flex-direction: row; /* Plasser knappene horisontalt */
+  justify-content: space-between; /* Plasser knappene på motsatte kanter */
+  width: 100%; /* Sørg for at containeren tar opp hele bredden */
+  margin-top: 20px;
+}
+
+/* Ny gruppe-knapp */
+#add-group-button {
+  width: 300px;
+  height: 45px;
+  font-size: 16px;
+  margin-bottom: 10px;
+  background-color: #d07900;
+}
+
+#add-group-button:hover {
+  background-color: #b66a00;
+}
+
+/* Last ned-knapp */
+#download-button {
+  width: 300px;
+  height: 45px;
+  font-size: 16px;
+  margin-bottom: 10px;
+  background-color: #107c41;
+}
+
+#download-button:hover {
+  background-color: #185c37;
+}
+
+/* Stil for input-felt for bildeopplasting */
+#image-input {
+  display: none;
+}
+
+#image-button {
+  padding: 8px 15px;
+  margin-right: 10px;
+  color: white;
+  background-color: #2A403D;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#image-button:hover {
+  background-color: #141f1d;
+}
+
+.group-row .image-input-container {
+  display: flex;
+  align-items: center;
+}
+
+.group-row .image-input-container input[type="file"] {
+  margin-left: 10px;
+  font-size: 14px;
+}
+
+input::placeholder {
+  color: #cccccc; /* Endre fargen her */
+  font-style: italic; /* Eksempel på ekstra stil */
+}

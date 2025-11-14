@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <title>Start Her – Musikkvideouka</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: linear-gradient(to bottom, #f7f9fc, #dbe9ff);
+      color: #222;
+      margin: 0;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2a4a9c;
+    }
+
+    h2 {
+      color: #2a4a9c;
+      margin-top: 2rem;
+    }
+
+    pre {
+      background: #f0f0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+
+    code {
+      font-weight: bold;
+    }
+
+    .knapper {
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .knapp {
+      background-color: #2a4a9c;
+      color: white;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 1.2rem;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+
+    .knapp:hover {
+      background-color: #1f3372;
+    }
+
+    @media (min-width: 600px) {
+      .knapper {
+        flex-direction: row;
+        justify-content: center;
+      }
+    }
+
+    ul {
+      padding-left: 1.2rem;
+    }
+
+    ul li {
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Velkommen til Musikkvideouka</h1>
+    <p>Denne veiledningen hjelper deg med å starte og bruke poengsystemet for Musikkvideouka – både for <strong>admin</strong> og <strong>publikumsskjerm</strong>.</p>
+
+    <h2>🔧 Første gang? Installer Node.js</h2>
+    <p>Systemet trenger noe som heter <strong>Node.js</strong>. Følg veiledningen under for å installere det.</p>
+
+    <h3>🖥️ For Windows</h3>
+    <pre>
+1. Gå til nettsiden: https://nodejs.org
+2. Trykk på knappen "Download for Windows (LTS)"
+3. Når filen er lastet ned (slutter på .msi), dobbeltklikk for å starte installasjon
+4. Trykk "Next", godta lisens, og klikk "Install"
+5. Når den er ferdig, klikk "Finish"
+6. Åpne Start-menyen og søk etter:
+   "Ledetekst" eller "PowerShell"
+7. Trykk Enter for å åpne det.
+8. Skriv:
+   node -v
+   ...og trykk Enter
+9. Hvis du ser noe som starter med "v" (f.eks. v18.19.1) er alt klart ✅
+    </pre>
+
+    <h3>🍏 For Mac</h3>
+    <pre>
+1. Gå til nettsiden: https://nodejs.org
+2. Trykk på knappen "Download for macOS (LTS)"
+3. Åpne filen som lastes ned (slutter på .pkg)
+4. Følg installasjonen (klikk "Fortsett", "Godta", osv.)
+5. Når installasjonen er ferdig, trykk "Lukk"
+6. Trykk CMD + mellomrom og søk etter: "Terminal"
+7. Trykk Enter for å åpne Terminal
+8. Skriv:
+   node -v
+   ...og trykk Enter
+9. Hvis du ser noe som starter med "v", er du klar ✅
+    </pre>
+
+    <h2>📦 Installer pakken (første gang)</h2>
+    <h3>Windows</h3>
+    <pre>
+1. Åpne mappen hvor prosjektet ligger
+2. Høyreklikk på et tomt område i mappen
+3. Velg "Åpne i Terminal" eller "Åpne i PowerShell"
+4. I vinduet som åpnes, skriv:
+   npm install
+   ...og trykk Enter
+    </pre>
+
+    <h3>Mac</h3>
+    <pre>
+1. Åpne Terminal
+2. Naviger til mappen med prosjektet:
+   cd ~/Nedlastinger/musikkvideouka
+3. Skriv:
+   npm install
+   ...og trykk Enter
+    </pre>
+
+    <p><strong>NB:</strong> Du trenger kun gjøre dette én gang (første gang du åpner prosjektet).</p>
+
+    <h2>🚀 Starte systemet</h2>
+    <p>Etter installasjon, start systemet slik:</p>
+    <pre>
+node server.js
+    </pre>
+    <p>Du skal nå se noe som ligner på:</p>
+    <pre>
+Server started on http://localhost:3000
+    </pre>
+
+    <h2>🌐 Gå til systemet</h2>
+    <div class="knapper">
+      <a class="knapp" href="http://localhost:3000" target="_blank">Publikumsside (localhost:3000)</a>
+      <a class="knapp" href="http://localhost:3000/admin" target="_blank">Adminpanel (localhost:3000/admin)</a>
+    </div>
+
+    <h2>📊 Bruk admin-panelet</h2>
+    <ul>
+      <li>Åpne <code>Musikkvideouka.xlsx</code> og fyll inn grupper, poeng og bilder</li>
+      <li>Gå til admin-siden</li>
+      <li>Trykk "Velg fil" og finn Excel-filen</li>
+      <li>Trykk "Oppdater" på én eller flere grupper for å sende til publikumssiden</li>
+    </ul>
+
+    <h2>🖼️ Legge inn bilder i Excel-filen</h2>
+<p>For at publikumssiden skal vise gruppebilder, må du <strong>ikke lime inn bilder direkte i Excel</strong>, men i stedet <strong>skrive inn stien til bildet</strong>. Det finnes to måter å gjøre dette på:</p>
+
+<h3>🔹 Alternativ 1: Bruke bilder som ligger lokalt i prosjektmappen</h3>
+<p><strong>Dette er den enkleste og tryggeste metoden.</strong></p>
+
+<h4>Slik gjør du:</h4>
+<ol>
+  <li>Lag en mappe i prosjektet kalt <code>bilder</code> inni <code>public</code>-mappen:
+    <pre>
+/musikkvideouka
+└── public
+    └── bilder
+        ├── gruppe1.jpg
+        ├── gruppe2.png
+        └── ... (ett bilde per gruppe)
+    </pre>
+  </li>
+  <li>I Excel-filen, i kolonnen for bilde, skriv inn <strong>bildestien</strong>:
+    <pre>
+bilder/gruppe1.jpg
+bilder/gruppe2.png
+    </pre>
+  </li>
+  <li>Når publikumssiden kjører, vil den laste bildene fra:
+    <pre>
+http://localhost:3000/bilder/gruppe1.jpg
+    </pre>
+  </li>
+</ol>
+
+<p><strong>Viktig:</strong></p>
+<ul>
+  <li>Pass på at bildefilnavnene er <strong>eksakt like</strong> som det du skriver i Excel (inkludert <code>.jpg</code>, <code>.png</code> osv).</li>
+  <li>Unngå mellomrom og spesialtegn i filnavn.</li>
+</ul>
+
+<h3>🔹 Alternativ 2: Bruke bilder som ligger på nett (URL)</h3>
+<p><strong>Brukes hvis du ikke vil ha bildene i prosjektmappen.</strong></p>
+
+<h4>Slik gjør du:</h4>
+<ol>
+  <li>Last opp bildene til en nettjeneste som støtter offentlige bildeadresser, f.eks:
+    <ul>
+      <li><a href="https://imgur.com" target="_blank">Imgur.com</a></li>
+      <li>Google Drive (med delbar lenke)</li>
+      <li>Dropbox (offentlig link)</li>
+      <li>Egen nettside</li>
+    </ul>
+  </li>
+  <li>Kopier den direkte URL-en til bildet, f.eks:
+    <pre>https://i.imgur.com/abc123.png</pre>
+  </li>
+  <li>I Excel-filen skriver du inn hele URL-en i bildefeltet:
+    <pre>https://i.imgur.com/gruppe1.jpg</pre>
+  </li>
+  <li>Bildet vises automatisk for publikum så lenge lenken er gyldig og offentlig.</li>
+</ol>
+
+<p><strong>Viktig:</strong></p>
+<ul>
+  <li>Ikke bruk lenker som krever innlogging (f.eks. lukket Google Drive).</li>
+  <li>Test gjerne bildeadressen i nettleseren først – hvis bildet åpnes direkte, er lenken god.</li>
+</ul>
+
+<p><strong>💡 Tips:</strong> Bruk helst <strong>Alternativ 1</strong> hvis du ikke er vant med bildefiler og nettlenker – da har du alt samlet i én mappe.</p>
+
+    <h2>🛠 Stoppe og starte systemet</h2>
+    <ul>
+      <li>For å <strong>stoppe</strong> serveren, klikk inne i terminalen og trykk <code>Ctrl + C</code> (Windows) eller <code>control + C</code> (Mac)</li>
+      <li>For å <strong>starte på nytt</strong>, skriv <code>node server.js</code> igjen i samme mappe</li>
+    </ul>
+
+    <h2>❓ Feilsøking</h2>
+    <ul>
+      <li>❗ Publikumssiden er tom? Sørg for at Excel-filen er valgt i admin og at du har trykket "Oppdater"</li>
+      <li>❗ Endringer vises ikke? Trykk "Oppdater" på nytt etter endringer i poeng/bilder</li>
+      <li>💾 Trykk "Last ned" i admin for å lagre backup av Excel-filen</li>
+      <li>🔁 Hvis alt låser seg, steng terminalen og start på nytt med <code>node server.js</code></li>
+    </ul>
+
+    <h2>📌 Klar!</h2>
+    <p>Systemet kjører nå lokalt på din maskin. Ingen internett er nødvendig.</p>
+    <p>Du kan åpne denne veiledningen igjen ved å åpne <code>START-HER.html</code></p>
+
+<h2>📁 Hva ligger i mappen?</h2>
+    <p>Du skal ha en mappe som ser slik ut:</p>
+    <pre>
+/musikkvideouka
+├── START-HER.html         ← denne guiden
+├── server.js              ← kjører selve systemet
+├── Musikkvideouka.xlsx    ← Excel-mal med grupper og poeng
+├── public/
+│   ├── publikum.html      ← mal for publikumsiden
+│   ├── publikum.js        ← JavaScript for publikumsiden
+│   ├── publikumstyle.css  ← CSS for publikumsiden
+│   ├── admin.html         ← mal for adminpanelet
+│   ├── admin.js           ← JavaScript for adminpanelet
+│   └── adminstyle.css     ← CSS for adminpanelet
+├── package.json           ← teknisk fil: forteller hvilke moduler som trengs
+├── package-lock.json      ← teknisk fil: versjoner og låsing av avhengigheter
+├── node_modules/          ← mappe med installerte moduler (kommer etter "npm install")
+
+    </pre>
+  </div>
+</body>
+</html>
