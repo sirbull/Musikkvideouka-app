@@ -23,10 +23,13 @@ function oppdaterGrupper(grupper) {
             div.classList.add('vinner'); // ekstra stil for førsteplass
         }
 
-        const bilde = document.createElement('img');
-        bilde.src = gruppe.bildeUrl || '';
-        bilde.alt = gruppe.navn;
-        bilde.className = 'gruppe-bilde';
+
+    // Nå forventes at gruppe.bildeUrl er en relativ URL, f.eks. /album_covers/artist_1.png
+    // Denne brukes direkte som src for <img>
+    const bilde = document.createElement('img');
+    bilde.src = gruppe.bildeUrl || '';
+    bilde.alt = gruppe.navn;
+    bilde.className = 'gruppe-bilde';
 
         const navn = document.createElement('div');
         navn.className = 'gruppe-navn';

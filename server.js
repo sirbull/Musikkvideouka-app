@@ -8,10 +8,23 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-const excelFile = path.join(__dirname, 'Musikkvideouka2024.xlsx');
+const excelFile = path.join(__dirname, 'Musikkvideouka.xlsx');
+// === Åpne Excel-fil automatisk ved oppstart (dummy-løsning) ===
+const { exec } = require('child_process');
+exec(`open "${excelFile}"`, (err) => {
+  if (err) {
+    console.error('Kunne ikke åpne Musikkvideouka.xlsx:', err);
+  } else {
+    console.log('Åpnet Musikkvideouka.xlsx med standardprogram.');
+  }
+});
 let sisteGrupper = []; // Lokalt minne med siste gruppeoppdatering fra admin
 
 // === Statisk og HTML ===
+
+// Statisk serving av alle filer i public/, inkludert album_covers
+// Eksempel: public/album_covers/artist_1.png blir tilgjengelig som /album_covers/artist_1.png
+// For at gruppebilder skal vises, må "Bilde"-kolonnen i Excel inneholde f.eks. /album_covers/artist_1.png
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {

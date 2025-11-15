@@ -2,12 +2,17 @@ let data = [];
 const socket = io();
 
 // === Lese Excel-fil og vise data ===
-document.getElementById('excel-file').addEventListener('change', function (event) {
+
+const excelInput = document.getElementById('excel-file');
+const uploadWarning = document.getElementById('upload-warning');
+
+excelInput.addEventListener('change', function (event) {
     const file = event.target.files[0];
     if (!file) {
-        alert('Vennligst velg en fil!');
+        if (uploadWarning) uploadWarning.style.display = 'block';
         return;
     }
+    if (uploadWarning) uploadWarning.style.display = 'none';
 
     const reader = new FileReader();
     reader.onload = function (e) {
@@ -20,6 +25,13 @@ document.getElementById('excel-file').addEventListener('change', function (event
     reader.readAsBinaryString(file);
 });
 
+// Vis advarsel hvis ingen fil er valgt ved lasting av siden
+window.addEventListener('DOMContentLoaded', function() {
+    if (excelInput && !excelInput.files.length && uploadWarning) {
+        uploadWarning.style.display = 'block';
+    }
+});
+
 // === Vise dataene i admin-grensesnittet ===
 function displayData(dataRows) {
     data = dataRows;
@@ -30,12 +42,15 @@ function displayData(dataRows) {
         const rowDiv = document.createElement('div');
         rowDiv.classList.add('group-row');
 
-        // === Bilde ===
-        const imgElement = document.createElement('img');
-        imgElement.src = row[1] || '';
-        imgElement.style.width = '50px';
-        imgElement.style.height = '50px';
-        imgElement.style.objectFit = 'cover';
+
+    // === Bilde ===
+    // Nå forventes at "Bilde"-kolonnen i Excel inneholder en relativ URL, f.eks. /album_covers/artist_1.png
+    // Denne brukes direkte som src for <img>
+    const imgElement = document.createElement('img');
+    imgElement.src = row[1] || '';
+    imgElement.style.width = '50px';
+    imgElement.style.height = '50px';
+    imgElement.style.objectFit = 'cover';
 
         const uploadImageButton = document.createElement('button');
         uploadImageButton.innerText = 'Endre Bilde';
