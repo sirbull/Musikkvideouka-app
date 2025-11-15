@@ -128,9 +128,13 @@
       <li>Åpne denne <code>START-HER.html</code> i nettleseren.</li>
       <li>Klikk på ønsket side under:</li>
     </ol>
+
     <div class="knapper">
-      <a class="knapp" href="http://localhost:3000" target="_blank">Publikumsside (localhost:3000)</a>
-      <a class="knapp" href="http://localhost:3000/admin" target="_blank">Adminpanel (localhost:3000/admin)</a>
+      <a class="knapp" href="/" target="_blank">Publikumsside</a>
+      <a class="knapp" href="/admin" target="_blank">Adminpanel</a>
+    </div>
+    <div style="margin-top:0.7rem; color:#444; font-size:1rem;">
+      Du kan også skrive <span style="font-family:monospace;">localhost:3000</span> eller <span style="font-family:monospace;">localhost:3000/admin</span> direkte i nettleseren.
     </div>
     <p style="margin-top:2rem;"><strong>Trenger du å legge inn grupper, poeng eller bilder?</strong> Se veiledningen lenger ned på siden.</p>
 
@@ -138,7 +142,8 @@
     <p>Systemet kjører nå lokalt på din maskin. Ingen internett er nødvendig.</p>
     <p>Du kan åpne denne veiledningen igjen ved å åpne <code>START-HER.html</code></p>
 
-    <!-- Avansert / manuell oppsett og feilsøking flyttet hit -->
+
+    <!-- Avansert / manuell oppsett og feilsøking flyttet til bunn av siden -->
     <div class="advanced-box">
       <details>
         <summary><span class="advanced-arrow" aria-hidden="true">&#9654;</span> <span class="advanced-title">Avansert / manuell oppsett og feilsøking</span></summary>
@@ -230,29 +235,40 @@
     }
   </style>
 
+
     <h2 style="margin-top:2.5rem;">🖼️ Bilder</h2>
     <ul>
-      <li>I Excel-filen, i kolonnen for bilde, skriv inn <strong>bildestien</strong>, f.eks. <code>bilder/gruppe1.jpg</code></li>
-      <li>Bildet vises automatisk for publikum så lenge lenken er gyldig og offentlig.</li>
+      <li>Legg bildene dine i mappen <code>public/bilder</code> i prosjektet.</li>
+      <li>I Excel-filen, i kolonnen for bilde, skriv inn <strong>bildestien</strong> slik: <code>/bilder/gruppe1.jpg</code> (eller tilsvarende filnavn).</li>
+      <li>Bildet vises automatisk for publikum så lenge filen ligger i <code>public/bilder</code> og stien er riktig.</li>
     </ul>
     <p><strong>Viktig:</strong></p>
     <ul>
       <li>Ikke bruk lenker som krever innlogging (f.eks. lukket Google Drive).</li>
       <li>Test gjerne bildeadressen i nettleseren først – hvis bildet åpnes direkte, er lenken god.</li>
+      <li>Du kan bruke PNG, JPG eller GIF.</li>
     </ul>
+
 
     <h2 style="margin-top:2.5rem;">🛠 Stoppe og starte systemet</h2>
     <ul>
-      <li>For å <strong>stoppe</strong> serveren, klikk inne i terminalen og trykk <code>Ctrl + C</code> (Windows) eller <code>control + C</code> (Mac)</li>
-      <li>For å <strong>starte på nytt</strong>, skriv <code>node server.js</code> igjen i samme mappe
-        <span style="display:flex; align-items:center; gap:0.5rem; margin:0.5rem 0 1.5rem 0;">
-          <input id="nodeServerCopy" type="text" value="node server.js" readonly style="font-family:monospace; font-size:1rem; padding:0.3em 0.7em; border-radius:6px; border:1px solid #bbb; width:15em; background:#f8f8f8;">
-          <button onclick="copyNodeServer()" title="Kopier kommando" style="background:none; border:none; cursor:pointer; padding:0;">
-            <svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg>
-          </button>
-        </span>
-      </li>
+      <li>For å <strong>stoppe</strong> serveren, klikk inne i terminalen og lim inn eller skriv følgende kommando, og trykk Enter:</li>
     </ul>
+    <div style="display:flex; align-items:center; gap:0.5rem; margin:0.5rem 0 1.5rem 0;">
+      <input id="ctrlCCopy" type="text" value="Ctrl + C" readonly style="font-family:monospace; font-size:1rem; padding:0.3em 0.7em; border-radius:6px; border:1px solid #bbb; width:8em; background:#f8f8f8;">
+      <button onclick="navigator.clipboard.writeText('Ctrl + C')" title="Kopier kommando" style="background:none; border:none; cursor:pointer; padding:0;">
+        <svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg>
+      </button>
+    </div>
+    <ul>
+      <li>For å <strong>starte på nytt</strong>, skriv eller lim inn følgende kommando i terminalen og trykk Enter:</li>
+    </ul>
+    <div style="display:flex; align-items:center; gap:0.5rem; margin:0.5rem 0 1.5rem 0;">
+      <input id="nodeServerCopy" type="text" value="node server.js" readonly style="font-family:monospace; font-size:1rem; padding:0.3em 0.7em; border-radius:6px; border:1px solid #bbb; width:15em; background:#f8f8f8;">
+      <button onclick="copyNodeServer()" title="Kopier kommando" style="background:none; border:none; cursor:pointer; padding:0;">
+        <svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg>
+      </button>
+    </div>
 
     <h2 class="section-header">📁 Hva ligger i mappen?</h2>
     <p>Du skal ha en mappe som ser slik ut:</p>

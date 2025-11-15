@@ -159,11 +159,23 @@ function displayData(dataRows) {
 
 // === Last ned som Excel (backup) ===
 document.getElementById('download-button').addEventListener('click', function () {
+    // Lag filnavn med dato og klokkeslett
+    const now = new Date();
+    const pad = n => n.toString().padStart(2, '0');
+    const dato = pad(now.getDate()) + pad(now.getMonth() + 1) + now.getFullYear();
+    const tid = pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
+    const filnavn = `Musikkvideouka-${dato}-${tid}.xlsx`;
+
+    // Header
+    const dataForExcel = [["Navn", "Bilde", "Poeng"]];
+    // Rader
+    data.forEach(row => {
+        dataForExcel.push([row[0], row[1], row[2]]);
+    });
     const wb = XLSX.utils.book_new();
-    const dataForExcel = data.map(row => [row[0], row[1], row[2]]);
     const ws = XLSX.utils.aoa_to_sheet(dataForExcel);
     XLSX.utils.book_append_sheet(wb, ws, 'Grupper');
-    XLSX.writeFile(wb, 'gruppedata.xlsx');
+    XLSX.writeFile(wb, filnavn);
 });
 
 // === Hente ut alle data fra skjemaet ===
