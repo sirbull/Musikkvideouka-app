@@ -5,6 +5,8 @@ Applikasjonen er inspirert av hvordan poenggivning blir gjort i større musikkon
 Admin kan samtidig legge inn poengsummer i eget vindu, og publikums-siden oppdateres live.
 
 Gruppenavn, bilde og poengsum hentes fra en XLSX-fil som kan forhåndsgenereres. Det ligger en fil klar i mappen som man kan bruke som utgangspunkt.
+Når man åpner admin-delen, velger man XLSX-filen som skal åpnes og lastes inn. Deretter kan man, om ønskelig, legge til nye artister, navn og endre poengsummer.
+Det er mulighet for å ta sikkerhetskopi av oppsettet nederst på admin-delen.
 
 ## Kom i gang
 
