@@ -34,7 +34,7 @@ body {
   border-radius: 12px;
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease;
+  transition: transform 0.5s cubic-bezier(0.4,0,0.2,1), box-shadow 0.5s, min-height 0.5s, padding 0.5s;
   min-height: 70px;
 }
 
@@ -75,6 +75,7 @@ body {
   background: rgba(255, 255, 255, 0.14);
   min-height: 85px;
   padding: 0.8rem 1.3rem;
+  transition: transform 0.5s cubic-bezier(0.4,0,0.2,1), min-height 0.5s, padding 0.5s;
 }
 
 .vinner .gruppe-bilde {

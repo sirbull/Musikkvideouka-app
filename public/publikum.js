@@ -4,21 +4,39 @@ const socket = io();
 function oppdaterGrupper(grupper) {
     const container1 = document.getElementById('kolonne1');
     const container2 = document.getElementById('kolonne2');
+
+    // FLIP: Første - lagre posisjoner
+    const allGruppeDivs = [...container1.children, ...container2.children];
+    const firstRects = new Map();
+    allGruppeDivs.forEach(div => {
+        if (div.dataset.id) {
+            firstRects.set(div.dataset.id, div.getBoundingClientRect());
+        }
+    });
+
     container1.innerHTML = '';
     container2.innerHTML = '';
 
     // Sorter gruppene etter poeng (høyest først)
     grupper.sort((a, b) => b.poeng - a.poeng);
 
+
     // === DEL GRUPPENE I TO KOLONNER ===
-    const maxVenstre = 8; // maks 8 grupper i venstre kolonne
-    const kolonne1 = grupper.slice(0, maxVenstre);
-    const kolonne2 = grupper.slice(maxVenstre); // resten går i høyre kolonne
+    // Flytt første gruppe fra høyre til nederst i venstre kolonne
+    const maxVenstre = 8;
+    let kolonne1 = grupper.slice(0, maxVenstre);
+    let kolonne2 = grupper.slice(maxVenstre);
+    if (kolonne2.length > 0) {
+        // Ta ut første fra høyre og legg til nederst i venstre
+        kolonne1 = kolonne1.concat(kolonne2.shift());
+    }
 
     // === GENERER ELEMENTER FOR HVER GRUPPE ===
     function lagGruppeElement(gruppe, erForste) {
+
         const div = document.createElement('div');
         div.className = 'gruppe';
+        div.dataset.id = gruppe.navn;
         if (erForste) {
             div.classList.add('vinner'); // ekstra stil for førsteplass
         }
@@ -47,6 +65,8 @@ function oppdaterGrupper(grupper) {
     }
 
     // === VIS GRUPPENE I KOLONNE 1 ===
+
+    // === VIS GRUPPENE I KOLONNE 1 ===
     kolonne1.forEach((gruppe, index) => {
         const erForste = index === 0;
         const element = lagGruppeElement(gruppe, erForste);
@@ -57,6 +77,25 @@ function oppdaterGrupper(grupper) {
     kolonne2.forEach(gruppe => {
         const element = lagGruppeElement(gruppe, false);
         container2.appendChild(element);
+    });
+
+    // FLIP: Last - lagre nye posisjoner og animér
+    const newGruppeDivs = [...container1.children, ...container2.children];
+    newGruppeDivs.forEach(div => {
+        const id = div.dataset.id;
+        if (!id || !firstRects.has(id)) return;
+        const firstRect = firstRects.get(id);
+        const lastRect = div.getBoundingClientRect();
+        const dx = firstRect.left - lastRect.left;
+        const dy = firstRect.top - lastRect.top;
+        if (dx !== 0 || dy !== 0) {
+            div.style.transition = 'none';
+            div.style.transform = `translate(${dx}px, ${dy}px)`;
+            requestAnimationFrame(() => {
+                div.style.transition = 'transform 0.5s cubic-bezier(0.4,0,0.2,1), box-shadow 0.5s';
+                div.style.transform = '';
+            });
+        }
     });
 }
 
