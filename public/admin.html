@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Live Avstemming</title>
+  <link rel="stylesheet" href="adminstyle.css">
+</head>
+<body>
+  <div class="container">
+    <h1>ADMIN - MUSIKKVIDEOUKA</h1>
+
+
+    <!-- Varsel om å laste opp Excel-fil -->
+    <div id="upload-warning" style="background:#ffe9e9; color:#a00; border:1.5px solid #e88; border-radius:7px; padding:0.8em 1em; margin-bottom:1.2em; font-size:1.1em; display:block; font-family:system-ui, Arial, Helvetica, sans-serif;">
+      <b>Ingen Excel-fil er lastet inn.</b> <br>
+      Vennligst last opp <span style="font-family:monospace;">Musikkvideouka.xlsx</span> eller en annen gyldig .xlsx-fil for å komme i gang.
+    </div>
+
+    <!-- Opplasting av Excel-fil -->
+    <div class="uploader"><input type="file" id="excel-file" />
+
+    <!-- Visning av data fra Excel -->
+    <div id="output"></div>
+
+    <!-- Wrapper for knappene -->
+    <div class="button-container">
+      <!-- Ny gruppe og Last ned knapper -->
+      <button id="add-group-button">Ny gruppe</button>
+      <button id="download-button">Last ned</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="admin.js"></script>
+
+
+</body>
+</html>
+

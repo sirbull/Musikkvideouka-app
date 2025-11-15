@@ -1,0 +1,94 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to right, #000428, #004e92);
+  color: white;
+  overflow-x: hidden;
+}
+
+.grupper-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 2rem 2vw;
+  max-width: 96vw;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.kolonne {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  min-width: 300px;
+}
+
+.gruppe {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+  min-height: 70px;
+}
+
+.gruppe:hover {
+  transform: scale(1.02);
+}
+
+.gruppe-bilde {
+  width: 60px;         /* LITT større enn opprinnelig */
+  height: 60px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.gruppe-navn {
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.gruppe-poeng {
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+/* Vertikal tekstcontainer */
+.gruppe > div:not(.gruppe-bilde) {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Førsteplassen – fremhevet men ikke overdimensjonert */
+.vinner {
+  border: 3px solid gold;
+  transform: scale(1.06);
+  background: rgba(255, 255, 255, 0.14);
+  min-height: 85px;
+  padding: 0.8rem 1.3rem;
+}
+
+.vinner .gruppe-bilde {
+  width: 70px;
+  height: 70px;
+}
+
+.vinner .gruppe-navn {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: gold;
+}
+
+.vinner .gruppe-poeng {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
