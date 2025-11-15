@@ -82,6 +82,22 @@
     ul li {
       margin-bottom: 0.5rem;
     }
+
+    details[open] > summary {
+      border-bottom: 1px solid #e0e6f7;
+      margin-bottom: 1.2rem;
+    }
+
+    summary {
+      font-size: 1.1rem;
+      cursor: pointer;
+      color: #2a4a9c;
+      font-weight: bold;
+      padding: 0.7em 1.2em;
+      background: none;
+      border: none;
+      outline: none;
+    }
   </style>
 </head>
 <body>
@@ -104,14 +120,6 @@
             <svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg>
           </button>
         </div>
-        <script>
-        function copyChmod() {
-          const inp = document.getElementById('chmodCopy');
-          inp.select();
-          inp.setSelectionRange(0, 99999);
-          document.execCommand('copy');
-        }
-        </script>
         <ul>
           <li style="color:#b00; font-weight:bold;">Windows: Hvis du får advarsel om at filen ikke kan kjøres, høyreklikk på filen, velg "Egenskaper" og huk av for "Opphev blokkering" (Unblock) hvis det vises.</li>
         </ul>
@@ -126,133 +134,127 @@
     </div>
     <p style="margin-top:2rem;"><strong>Trenger du å legge inn grupper, poeng eller bilder?</strong> Se veiledningen lenger ned på siden.</p>
 
-
     <h2 style="margin-top:2.5rem;">📌 Klar!</h2>
     <p>Systemet kjører nå lokalt på din maskin. Ingen internett er nødvendig.</p>
     <p>Du kan åpne denne veiledningen igjen ved å åpne <code>START-HER.html</code></p>
 
-    <details style="margin-top:2.5rem;">
-      <summary style="font-size:1.1rem; cursor:pointer; color:#2a4a9c; font-weight:bold;">Avansert / manuell oppsett og feilsøking (for viderekomne)</summary>
-      <div style="margin-top:1.5rem;">
-        <h2>� Første gang? Installer Node.js</h2>
-        <p>Systemet trenger noe som heter <strong>Node.js</strong>. Følg veiledningen under for å installere det.</p>
-        <h3>🖥️ For Windows</h3>
-        <pre>
-    <pre>
-/musikkvideouka
-└── public
-    └── bilder
-        ├── gruppe1.jpg
-        ├── gruppe2.png
-        └── ... (ett bilde per gruppe)
-    </pre>
-  </li>
-  <li>I Excel-filen, i kolonnen for bilde, skriv inn <strong>bildestien</strong>:
-    <pre>
-bilder/gruppe1.jpg
-bilder/gruppe2.png
-        <h3>🍏 For Mac</h3>
-        <pre>
-    </pre>
-  </li>
-  <li>Når publikumssiden kjører, vil den laste bildene fra:
-    <pre>
-http://localhost:3000/bilder/gruppe1.jpg
-    </pre>
-  </li>
-</ol>
-
-<p><strong>Viktig:</strong></p>
-<ul>
-  <li>Pass på at bildefilnavnene er <strong>eksakt like</strong> som det du skriver i Excel (inkludert <code>.jpg</code>, <code>.png</code> osv).</li>
-        <h2>📦 Installer pakken (første gang)</h2>
-        <h3>Windows</h3>
-        <pre>
-  <li>Unngå mellomrom og spesialtegn i filnavn.</li>
-</ul>
-
-<h3>🔹 Alternativ 2: Bruke bilder som ligger på nett (URL)</h3>
-<p><strong>Brukes hvis du ikke vil ha bildene i prosjektmappen.</strong></p>
-
-<h4>Slik gjør du:</h4>
-        <h3>Mac</h3>
-        <pre>
-<ol>
-  <li>Last opp bildene til en nettjeneste som støtter offentlige bildeadresser, f.eks:
-    <ul>
-      <li><a href="https://imgur.com" target="_blank">Imgur.com</a></li>
-      <li>Google Drive (med delbar lenke)</li>
-      <li>Dropbox (offentlig link)</li>
-      <li>Egen nettside</li>
-        <p><strong>NB:</strong> Du trenger kun gjøre dette én gang (første gang du åpner prosjektet).</p>
-        <h2>🚀 Starte systemet manuelt</h2>
-        <pre>
-    </ul>
-  </li>
-  <li>Kopier den direkte URL-en til bildet, f.eks:
-    <pre>https://i.imgur.com/abc123.png</pre>
-  </li>
-  <li>I Excel-filen skriver du inn hele URL-en i bildefeltet:
-    <pre>https://i.imgur.com/gruppe1.jpg</pre>
-        <h2>🛠 Stoppe og starte systemet</h2>
+    <!-- Avansert / manuell oppsett og feilsøking flyttet hit -->
+    <div class="advanced-box">
+      <details>
+        <summary><span class="advanced-arrow" aria-hidden="true">&#9654;</span> <span class="advanced-title">Avansert / manuell oppsett og feilsøking</span></summary>
+        <div class="advanced-content">
+        <h2 style="color:#2a4a9c; font-size:1.15em; margin-bottom:0.7em;">Første gang? Installer Node.js</h2>
+        <ol>
+          <li>Gå til <a href="https://nodejs.org" target="_blank">nodejs.org</a> og last ned for ditt system.</li>
+          <li>Installer og åpne terminal/ledetekst.</li>
+          <li>Sjekk at Node.js er installert: <span style="display:inline-flex;align-items:center;gap:0.3em;margin-left:0.5em;"><input id="nodevCopy2" type="text" value="node -v" readonly style="font-family:monospace;font-size:1em;padding:0.15em 0.5em;border-radius:5px;border:1px solid #bbb;width:7.5em;background:#f8f8f8;"><button onclick="copyNodev2()" title="Kopier kommando" style="background:none;border:none;cursor:pointer;padding:0;vertical-align:middle;"><svg xmlns='http://www.w3.org/2000/svg' width='19' height='19' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg></button></span></li>
+        </ol>
+        <h2 style="color:#2a4a9c; font-size:1.15em; margin:1.2em 0 0.7em 0;">Installer pakken (første gang)</h2>
+        <ol>
+          <li>Åpne terminal/ledetekst i prosjektmappen.</li>
+          <li>Kjør: <span style="display:inline-flex;align-items:center;gap:0.3em;margin-left:0.5em;"><input id="npmInstallCopy2" type="text" value="npm install" readonly style="font-family:monospace;font-size:1em;padding:0.15em 0.5em;border-radius:5px;border:1px solid #bbb;width:9em;background:#f8f8f8;"><button onclick="copyNpmInstall2()" title="Kopier kommando" style="background:none;border:none;cursor:pointer;padding:0;vertical-align:middle;"><svg xmlns='http://www.w3.org/2000/svg' width='19' height='19' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg></button></span></li>
+        </ol>
+        <h2 style="color:#2a4a9c; font-size:1.15em; margin:1.2em 0 0.7em 0;">Starte systemet manuelt</h2>
+        <ol>
+          <li>Åpne to terminalvinduer.</li>
+          <li>I det første, skriv: <span style="display:inline-flex;align-items:center;gap:0.3em;margin-left:0.5em;"><input id="startHelperCopy2" type="text" value="node start-helper.js" readonly style="font-family:monospace;font-size:1em;padding:0.15em 0.5em;border-radius:5px;border:1px solid #bbb;width:13em;background:#f8f8f8;"><button onclick="copyStartHelper2()" title="Kopier kommando" style="background:none;border:none;cursor:pointer;padding:0;vertical-align:middle;"><svg xmlns='http://www.w3.org/2000/svg' width='19' height='19' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg></button></span></li>
+          <li>I det andre, skriv: <span style="display:inline-flex;align-items:center;gap:0.3em;margin-left:0.5em;"><input id="devCopy2" type="text" value="npm run dev" readonly style="font-family:monospace;font-size:1em;padding:0.15em 0.5em;border-radius:5px;border:1px solid #bbb;width:9em;background:#f8f8f8;"><button onclick="copyDev2()" title="Kopier kommando" style="background:none;border:none;cursor:pointer;padding:0;vertical-align:middle;"><svg xmlns='http://www.w3.org/2000/svg' width='19' height='19' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg></button></span></li>
+        </ol>
+        <h2 style="color:#2a4a9c; font-size:1.15em; margin:1.2em 0 0.7em 0;">Spesielt for Mac og Windows</h2>
         <ul>
-          <li>For å <strong>stoppe</strong> serveren, klikk inne i terminalen og trykk <code>Ctrl + C</code> (Windows) eller <code>control + C</code> (Mac)</li>
-          <li>For å <strong>starte på nytt</strong>, kjør skriptet eller kommandoene over igjen</li>
+          <li style="color:#b00; font-weight:bold;">Mac: Første gang må du gi filen kjøre-tillatelse!<br><span style="color:#222; font-weight:normal;">Hvis du får feilmelding om tilgang, åpne Terminal og lim inn: <span style="display:inline-flex;align-items:center;gap:0.3em;margin-left:0.5em;"><input id="chmodCopy2" type="text" value="chmod +x MacOS-start-alt.command" readonly style="font-family:monospace;font-size:1em;padding:0.15em 0.5em;border-radius:5px;border:1px solid #bbb;width:18em;background:#f8f8f8;"><button onclick="copyChmod2()" title="Kopier kommando" style="background:none;border:none;cursor:pointer;padding:0;vertical-align:middle;"><svg xmlns='http://www.w3.org/2000/svg' width='19' height='19' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg></button></span></span></li>
+          <li style="color:#b00; font-weight:bold;">Windows: Hvis du får advarsel om at filen ikke kan kjøres, høyreklikk på filen, velg "Egenskaper" og huk av for "Opphev blokkering" (Unblock) hvis det vises.</li>
         </ul>
-        <h2>❓ Feilsøking</h2>
+        <h2 style="color:#2a4a9c; font-size:1.15em; margin:1.2em 0 0.7em 0;">Feilsøking</h2>
         <ul>
           <li>❗ Publikumssiden er tom? Sørg for at Excel-filen er valgt i admin og at du har trykket "Oppdater"</li>
           <li>❗ Endringer vises ikke? Trykk "Oppdater" på nytt etter endringer i poeng/bilder</li>
           <li>💾 Trykk "Last ned" i admin for å lagre backup av Excel-filen</li>
           <li>🔁 Hvis alt låser seg, steng terminalen og start på nytt</li>
         </ul>
-      </div>
-    </details>
-  </li>
-  <li>Bildet vises automatisk for publikum så lenge lenken er gyldig og offentlig.</li>
-</ol>
-<p><strong>Viktig:</strong></p>
-<ul>
-  <li>Ikke bruk lenker som krever innlogging (f.eks. lukket Google Drive).</li>
-  <li>Test gjerne bildeadressen i nettleseren først – hvis bildet åpnes direkte, er lenken god.</li>
-</ul>
+        </div>
+      </details>
+    </div>
+  <style>
+    /* ...existing code... */
+    .advanced-box {
+      margin-top: 2.5rem;
+      border: 2px solid #2a4a9c;
+      border-radius: 12px;
+      background: #f7faff;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 4px 18px rgba(42,74,156,0.07);
+    }
+    .advanced-box details {
+      margin: 0;
+      padding: 0;
+    }
+    .advanced-box summary {
+      display: flex;
+      align-items: center;
+      font-size: 1.13rem;
+      font-weight: bold;
+      color: #2a4a9c;
+      background: none;
+      border: none;
+      outline: none;
+      padding: 1.1em 1.2em 1.1em 1.2em;
+      cursor: pointer;
+      border-radius: 12px 12px 0 0;
+      transition: background 0.2s;
+      user-select: none;
+    }
+    .advanced-box summary:hover {
+      background: #e6eaff;
+    }
+    .advanced-arrow {
+      display: inline-block;
+      margin-right: 0.7em;
+      font-size: 1.2em;
+      transition: transform 0.2s;
+    }
+    .advanced-box details[open] > summary .advanced-arrow {
+      transform: rotate(90deg);
+    }
+    .advanced-title {
+      font-size: 1.13rem;
+      font-weight: bold;
+      color: #2a4a9c;
+    }
+    .advanced-content {
+      padding: 1.2em 1.5em 1.5em 1.5em;
+      background: none;
+      border-radius: 0 0 12px 12px;
+    }
+  </style>
 
-        <pre>
+    <h2 style="margin-top:2.5rem;">🖼️ Bilder</h2>
+    <ul>
+      <li>I Excel-filen, i kolonnen for bilde, skriv inn <strong>bildestien</strong>, f.eks. <code>bilder/gruppe1.jpg</code></li>
+      <li>Bildet vises automatisk for publikum så lenge lenken er gyldig og offentlig.</li>
+    </ul>
+    <p><strong>Viktig:</strong></p>
+    <ul>
+      <li>Ikke bruk lenker som krever innlogging (f.eks. lukket Google Drive).</li>
+      <li>Test gjerne bildeadressen i nettleseren først – hvis bildet åpnes direkte, er lenken god.</li>
+    </ul>
 
-    <h2>🛠 Stoppe og starte systemet</h2>
+    <h2 style="margin-top:2.5rem;">🛠 Stoppe og starte systemet</h2>
     <ul>
       <li>For å <strong>stoppe</strong> serveren, klikk inne i terminalen og trykk <code>Ctrl + C</code> (Windows) eller <code>control + C</code> (Mac)</li>
-      <li>For å <strong>starte på nytt</strong>, skriv <code>node server.js</code> igjen i samme mappe</li>
-        <div style="display:flex; align-items:center; gap:0.5rem; margin:0.5rem 0 1.5rem 0;">
+      <li>For å <strong>starte på nytt</strong>, skriv <code>node server.js</code> igjen i samme mappe
+        <span style="display:flex; align-items:center; gap:0.5rem; margin:0.5rem 0 1.5rem 0;">
           <input id="nodeServerCopy" type="text" value="node server.js" readonly style="font-family:monospace; font-size:1rem; padding:0.3em 0.7em; border-radius:6px; border:1px solid #bbb; width:15em; background:#f8f8f8;">
           <button onclick="copyNodeServer()" title="Kopier kommando" style="background:none; border:none; cursor:pointer; padding:0;">
             <svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg>
           </button>
-        </div>
-        <script>
-        function copyNodeServer() {
-          const inp = document.getElementById('nodeServerCopy');
-          inp.select();
-          inp.setSelectionRange(0, 99999);
-          document.execCommand('copy');
-        }
-        </script>
-        <pre>
+        </span>
+      </li>
     </ul>
 
-    <h2>❓ Feilsøking</h2>
-    <ul>
-      <li>❗ Publikumssiden er tom? Sørg for at Excel-filen er valgt i admin og at du har trykket "Oppdater"</li>
-      <li>❗ Endringer vises ikke? Trykk "Oppdater" på nytt etter endringer i poeng/bilder</li>
-      <li>💾 Trykk "Last ned" i admin for å lagre backup av Excel-filen</li>
-      <li>🔁 Hvis alt låser seg, steng terminalen og start på nytt med <code>node server.js</code></li>
-    </ul>
-
-    <h2>📌 Klar!</h2>
-    <p>Systemet kjører nå lokalt på din maskin. Ingen internett er nødvendig.</p>
-    <p>Du kan åpne denne veiledningen igjen ved å åpne <code>START-HER.html</code></p>
-
-<h2>📁 Hva ligger i mappen?</h2>
+    <h2 class="section-header">📁 Hva ligger i mappen?</h2>
     <p>Du skal ha en mappe som ser slik ut:</p>
     <pre>
 /musikkvideouka
@@ -269,79 +271,166 @@ http://localhost:3000/bilder/gruppe1.jpg
 ├── package.json           ← teknisk fil: forteller hvilke moduler som trengs
 ├── package-lock.json      ← teknisk fil: versjoner og låsing av avhengigheter
 ├── node_modules/          ← mappe med installerte moduler (kommer etter "npm install")
-
     </pre>
-    <!-- Avansert / manuell oppsett og feilsøking -->
-    <details style="margin-top:2rem; border:2px solid #2a4a9c; border-radius:10px; background:#f7faff; padding:1rem 1.2rem 1.2rem 1.2rem; max-width:650px; margin-left:auto; margin-right:auto;">
-      <summary style="font-size:1.05rem; cursor:pointer; color:#2a4a9c; font-weight:bold;">Avansert / manuell oppsett og feilsøking</summary>
-      <div style="margin-top:1.1rem;">
-        <div style="font-size:1.02rem; margin-bottom:0.7em;"><b>Første gang? Installer Node.js</b></div>
-        <ol style="margin:0 0 0.7em 1.2em; padding:0;">
-          <li style="margin-bottom:0.3em;">Gå til <a href="https://nodejs.org" target="_blank">nodejs.org</a> og last ned for ditt system</li>
-          <li style="margin-bottom:0.3em;">Installer og åpne terminal/ledetekst</li>
-          <li style="margin-bottom:0.3em;">Sjekk at Node.js er installert:
-            <span style="display:inline-flex;align-items:center;gap:0.3em;margin-left:0.5em;">
-              <input id="nodevCopy" type="text" value="node -v" readonly style="font-family:monospace;font-size:1em;padding:0.15em 0.5em;border-radius:5px;border:1px solid #bbb;width:7.5em;background:#f8f8f8;">
-              <button onclick="copyNodev()" title="Kopier kommando" style="background:none;border:none;cursor:pointer;padding:0;vertical-align:middle;">
-                <svg xmlns='http://www.w3.org/2000/svg' width='19' height='19' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg>
-              </button>
-            </span>
-          </li>
-        </ol>
-        <div style="font-size:1.02rem; margin:1.1em 0 0.7em 0;"><b>Installer pakken (første gang)</b></div>
-        <ol style="margin:0 0 0.7em 1.2em; padding:0;">
-          <li style="margin-bottom:0.3em;">Åpne terminal/ledetekst i prosjektmappen</li>
-          <li style="margin-bottom:0.3em;">Kjør:
-            <span style="display:inline-flex;align-items:center;gap:0.3em;margin-left:0.5em;">
-              <input id="npmInstallCopy" type="text" value="npm install" readonly style="font-family:monospace;font-size:1em;padding:0.15em 0.5em;border-radius:5px;border:1px solid #bbb;width:9em;background:#f8f8f8;">
-              <button onclick="copyNpmInstall()" title="Kopier kommando" style="background:none;border:none;cursor:pointer;padding:0;vertical-align:middle;">
-                <svg xmlns='http://www.w3.org/2000/svg' width='19' height='19' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg>
-              </button>
-            </span>
-          </li>
-        </ol>
-        <div style="font-size:1.02rem; margin:1.1em 0 0.7em 0;"><b>Starte systemet manuelt</b></div>
-        <ol style="margin:0 0 0.7em 1.2em; padding:0;">
-          <li style="margin-bottom:0.3em;">Åpne to terminalvinduer</li>
-          <li style="margin-bottom:0.3em;">I det første, skriv:
-            <span style="display:inline-flex;align-items:center;gap:0.3em;margin-left:0.5em;">
-              <input id="startHelperCopy" type="text" value="node start-helper.js" readonly style="font-family:monospace;font-size:1em;padding:0.15em 0.5em;border-radius:5px;border:1px solid #bbb;width:13em;background:#f8f8f8;">
-              <button onclick="copyStartHelper()" title="Kopier kommando" style="background:none;border:none;cursor:pointer;padding:0;vertical-align:middle;">
-                <svg xmlns='http://www.w3.org/2000/svg' width='19' height='19' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg>
-              </button>
-            </span>
-          </li>
-          <li style="margin-bottom:0.3em;">I det andre, skriv:
-            <span style="display:inline-flex;align-items:center;gap:0.3em;margin-left:0.5em;">
-              <input id="devCopy" type="text" value="npm run dev" readonly style="font-family:monospace;font-size:1em;padding:0.15em 0.5em;border-radius:5px;border:1px solid #bbb;width:9em;background:#f8f8f8;">
-              <button onclick="copyDev()" title="Kopier kommando" style="background:none;border:none;cursor:pointer;padding:0;vertical-align:middle;">
-                <svg xmlns='http://www.w3.org/2000/svg' width='19' height='19' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg>
-              </button>
-            </span>
-          </li>
-        </ol>
-        <div style="font-size:1.02rem; margin:1.1em 0 0.7em 0;"><b>Spesielt for Mac og Windows</b></div>
-        <ul style="margin:0 0 0.7em 1.2em; padding:0;">
-          <li style="color:#b00; font-weight:bold; margin-bottom:0.3em;">Mac: Første gang må du gi filen kjøre-tillatelse!
-            <span style="color:#222; font-weight:normal;">Hvis du får feilmelding om tilgang, åpne Terminal og lim inn kommandoen under, trykk Enter, og prøv igjen:</span>
-            <span style="display:inline-flex;align-items:center;gap:0.3em;margin-left:0.5em;">
-              <input id="chmodCopy" type="text" value="chmod +x MacOS-start-alt.command" readonly style="font-family:monospace;font-size:1em;padding:0.15em 0.5em;border-radius:5px;border:1px solid #bbb;width:18em;background:#f8f8f8;">
-              <button onclick="copyChmod()" title="Kopier kommando" style="background:none;border:none;cursor:pointer;padding:0;vertical-align:middle;">
-                <svg xmlns='http://www.w3.org/2000/svg' width='19' height='19' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg>
-              </button>
-            </span>
-          </li>
-          <li style="color:#b00; font-weight:bold; margin-bottom:0.3em;">Windows: Hvis du får advarsel om at filen ikke kan kjøres, høyreklikk på filen, velg "Egenskaper" og huk av for "Opphev blokkering" (Unblock) hvis det vises.</li>
-        </ul>
-        <div style="font-size:1.02rem; margin:1.1em 0 0.7em 0;"><b>Feilsøking</b></div>
-        <ul style="margin:0 0 0.7em 1.2em; padding:0;">
-          <li>❗ Publikumssiden er tom? Sørg for at Excel-filen er valgt i admin og at du har trykket "Oppdater"</li>
-          <li>❗ Endringer vises ikke? Trykk "Oppdater" på nytt etter endringer i poeng/bilder</li>
-          <li>💾 Trykk "Last ned" i admin for å lagre backup av Excel-filen</li>
-          <li>🔁 Hvis alt låser seg, steng terminalen og start på nytt</li>
-        </ul>
-      </div>
-    </details>
+
+  </div>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: linear-gradient(to bottom, #f7f9fc, #dbe9ff);
+      color: #222;
+      margin: 0;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+    }
+    h1 {
+      text-align: center;
+      color: #2a4a9c;
+    }
+    h2, .section-header {
+      color: #2a4a9c;
+      margin-top: 2rem;
+    }
+    pre {
+      background: #f0f0f0;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    code {
+      font-weight: bold;
+    }
+    .knapper {
+      margin-top: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+    }
+    .knapp {
+      background-color: #2a4a9c;
+      color: white;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 1.2rem;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    .knapp:hover {
+      background-color: #1f3372;
+    }
+    @media (min-width: 600px) {
+      .knapper {
+        flex-direction: row;
+        justify-content: center;
+      }
+    }
+    ul {
+      padding-left: 1.2rem;
+    }
+    ul li {
+      margin-bottom: 0.5rem;
+    }
+    .advanced-box {
+      width: 100%;
+      max-width: 100%;
+      border: 1px solid #2a4a9c;
+      border-radius: 12px;
+      background: #f7faff;
+      box-shadow: 0 4px 18px rgba(42,74,156,0.07);
+      margin: 2.5rem 0 0 0;
+    }
+    .advanced-box details {
+      margin: 0;
+      padding: 0;
+    }
+    .advanced-box summary {
+      display: flex;
+      align-items: center;
+      font-size: 1.13rem;
+      font-weight: bold;
+      color: #2a4a9c;
+      background: none;
+      border: none;
+      outline: none;
+      padding: 1.1em 1.2em 1.1em 1.2em;
+      cursor: pointer;
+      border-radius: 12px 12px 0 0;
+      transition: background 0.2s;
+      user-select: none;
+    }
+    .advanced-box summary:hover {
+      background: #e6eaff;
+    }
+    .advanced-arrow {
+      display: inline-block;
+      margin-right: 0.7em;
+      font-size: 1.2em;
+      transition: transform 0.2s;
+    }
+    .advanced-box details[open] > summary .advanced-arrow {
+      transform: rotate(90deg);
+    }
+    .advanced-title {
+      font-size: 1.13rem;
+      font-weight: bold;
+      color: #2a4a9c;
+    }
+    .advanced-content {
+      padding: 1.2em 1.5em 1.5em 1.5em;
+      background: none;
+      border-radius: 0 0 12px 12px;
+    }
+    .advanced-h2 {
+      color: #2a4a9c;
+      font-size: 1.15em;
+      margin: 1.2em 0 0.7em 0;
+    }
+    .inline-copy {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3em;
+      margin-left: 0.5em;
+    }
+    .inline-copy input {
+      font-family: monospace;
+      font-size: 1em;
+      padding: 0.15em 0.5em;
+      border-radius: 5px;
+      border: 1px solid #bbb;
+      width: auto;
+      background: #f8f8f8;
+    }
+    .inline-copy button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      vertical-align: middle;
+    }
+    .mac-warning {
+      color: #b00;
+      font-weight: bold;
+    }
+    .mac-note {
+      color: #222;
+      font-weight: normal;
+    }
+    .win-warning {
+      color: #b00;
+      font-weight: bold;
+    }
+  </style>
     <script>
     function copyNodev() {
       const inp = document.getElementById('nodevCopy');
@@ -369,6 +458,37 @@ http://localhost:3000/bilder/gruppe1.jpg
     }
     function copyChmod() {
       const inp = document.getElementById('chmodCopy');
+      inp.select();
+      inp.setSelectionRange(0, 99999);
+      document.execCommand('copy');
+    }
+    // Advanced section copy functions
+    function copyNodev2() {
+      const inp = document.getElementById('nodevCopy2');
+      inp.select();
+      inp.setSelectionRange(0, 99999);
+      document.execCommand('copy');
+    }
+    function copyNpmInstall2() {
+      const inp = document.getElementById('npmInstallCopy2');
+      inp.select();
+      inp.setSelectionRange(0, 99999);
+      document.execCommand('copy');
+    }
+    function copyStartHelper2() {
+      const inp = document.getElementById('startHelperCopy2');
+      inp.select();
+      inp.setSelectionRange(0, 99999);
+      document.execCommand('copy');
+    }
+    function copyDev2() {
+      const inp = document.getElementById('devCopy2');
+      inp.select();
+      inp.setSelectionRange(0, 99999);
+      document.execCommand('copy');
+    }
+    function copyChmod2() {
+      const inp = document.getElementById('chmodCopy2');
       inp.select();
       inp.setSelectionRange(0, 99999);
       document.execCommand('copy');
