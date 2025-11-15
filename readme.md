@@ -1,6 +1,10 @@
 # Musikkvideouka – Poengsystem
 
 Dette er et brukervennlig poeng- og visningssystem for Musikkvideouka, laget for å være enkelt å sette opp for både lærere og elever.
+Applikasjonen er inspirert av hvordan poenggivning blir gjort i større musikkonkurranser og viser ulike artister i en liste hvor artisten med mest poeng vises øverst.
+Admin kan samtidig legge inn poengsummer i eget vindu, og publikums-siden oppdateres live.
+
+Gruppenavn, bilde og poengsum hentes fra en XLSX-fil som kan forhåndsgenereres. Det ligger en fil klar i mappen som man kan bruke som utgangspunkt.
 
 ## Kom i gang
 
@@ -57,5 +61,3 @@ npm run dev
 ```
 
 ---
-
-**Lykke til med Musikkvideouka!**
