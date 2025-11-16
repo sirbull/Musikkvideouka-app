@@ -1,5 +1,8 @@
 const socket = io();
 
+// Lagre forrige vinner for å detektere endringer
+let forrigeVinner = null;
+
 // Funksjon for å oppdatere visningen av grupper
 function oppdaterGrupper(grupper) {
     const container1 = document.getElementById('kolonne1');
@@ -19,6 +22,15 @@ function oppdaterGrupper(grupper) {
 
     // Sorter gruppene etter poeng (høyest først)
     grupper.sort((a, b) => b.poeng - a.poeng);
+
+    // Sjekk om vi har en ny vinner
+    const nyVinner = grupper.length > 0 ? grupper[0].navn : null;
+    const nyVinnerPoeng = grupper.length > 0 ? grupper[0].poeng : 0;
+    if (forrigeVinner !== null && nyVinner !== null && forrigeVinner !== nyVinner && nyVinnerPoeng >= 20) {
+        // Ny vinner med minst 20 poeng! Vis konfetti
+        visKonfetti();
+    }
+    forrigeVinner = nyVinner;
 
 
     // === DEL GRUPPENE I TO KOLONNER ===
@@ -70,6 +82,16 @@ function oppdaterGrupper(grupper) {
     kolonne1.forEach((gruppe, index) => {
         const erForste = index === 0;
         const element = lagGruppeElement(gruppe, erForste);
+        
+        // Legg til ekstra celebration-animasjon hvis dette er ny vinner
+        if (erForste && forrigeVinner !== null && forrigeVinner !== gruppe.navn) {
+            element.classList.add('ny-vinner');
+            // Fjern klassen etter animasjon er ferdig
+            setTimeout(() => {
+                element.classList.remove('ny-vinner');
+            }, 1200);
+        }
+        
         container1.appendChild(element);
     });
 
@@ -114,3 +136,25 @@ fetch('/api/grupper')
     .then(res => res.json())
     .then(data => oppdaterGrupper(data))
     .catch(err => console.error('Feil ved henting av grupper:', err));
+
+// === Konfetti-effekt ===
+function visKonfetti() {
+    const colors = ['#FFD700', '#FF69B4', '#00CED1', '#FF6347', '#9370DB', '#32CD32'];
+    const confettiCount = 150;
+    const container = document.body;
+
+    for (let i = 0; i < confettiCount; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDelay = Math.random() * 0.3 + 's';
+        confetti.style.animationDuration = (Math.random() * 1 + 2) + 's';
+        container.appendChild(confetti);
+
+        // Fjern konfetti etter animasjon
+        setTimeout(() => {
+            confetti.remove();
+        }, 4000);
+    }
+}
