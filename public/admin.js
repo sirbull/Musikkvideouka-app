@@ -19,7 +19,14 @@ excelInput.addEventListener('change', function (event) {
         const dataRaw = e.target.result;
         const workbook = XLSX.read(dataRaw, { type: 'binary' });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, range: 1 });
+        let rows = XLSX.utils.sheet_to_json(sheet, { header: 1, range: 1 });
+        // Filtrer ut tomme rader (ingen navn, bilde eller poeng)
+        rows = rows.filter(row => {
+          // Sjekk at minst én av kolonnene har innhold (Navn, Bilde, Poeng)
+          return (row[0] && row[0].toString().trim() !== '') ||
+                 (row[1] && row[1].toString().trim() !== '') ||
+                 (row[2] && row[2].toString().trim() !== '');
+        });
         displayData(rows);
     };
     reader.readAsBinaryString(file);

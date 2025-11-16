@@ -1,187 +1,71 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-  <meta charset="UTF-8" />
-  <title>Start Her – Musikkvideouka</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>START-HER – Musikkvideouka</title>
   <style>
     body {
-      font-family: system-ui, sans-serif;
-      background: linear-gradient(to bottom, #f7f9fc, #dbe9ff);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f7fb;
       color: #222;
       margin: 0;
-      padding: 2rem;
-      line-height: 1.6;
+      padding: 0;
     }
-
     .container {
-      max-width: 900px;
-      margin: auto;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-      padding: 2rem;
+      max-width: 700px;
+      margin: 2.5rem auto 2.5rem auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(42,74,156,0.09);
+      padding: 2.5rem 2.2rem 2.5rem 2.2rem;
     }
-
     h1 {
-      text-align: center;
       color: #2a4a9c;
-    }
-
-    h2 {
-      color: #2a4a9c;
-      margin-top: 2rem;
-    }
-
-    pre {
-      background: #f0f0f0;
-      padding: 1rem;
-      border-radius: 8px;
-      overflow-x: auto;
-    }
-
-    code {
-      font-weight: bold;
-    }
-
-    .knapper {
-      margin-top: 2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      align-items: center;
-    }
-
-    .knapp {
-      background-color: #2a4a9c;
-      color: white;
-      padding: 1rem 2rem;
-      border: none;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 1.2rem;
-      font-weight: bold;
-      transition: background-color 0.3s ease;
-    }
-
-    .knapp:hover {
-      background-color: #1f3372;
-    }
-
-    @media (min-width: 600px) {
-      .knapper {
-        flex-direction: row;
-        justify-content: center;
-      }
-    }
-
-    ul {
-      padding-left: 1.2rem;
-    }
-
-    ul li {
-      margin-bottom: 0.5rem;
-    }
-
-    details[open] > summary {
-      border-bottom: 1px solid #e0e6f7;
+      font-size: 2.1rem;
       margin-bottom: 1.2rem;
     }
-
-    summary {
-      font-size: 1.1rem;
-      cursor: pointer;
+    h2 {
       color: #2a4a9c;
-      font-weight: bold;
-      padding: 0.7em 1.2em;
-      background: none;
-      border: none;
-      outline: none;
+      font-size: 1.3rem;
+      margin-top: 2.5rem;
+      margin-bottom: 0.7rem;
     }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Velkommen til Musikkvideouka</h1>
-    <p><strong>For å starte systemet:</strong></p>
-    <ol>
-      <li>Finn denne mappen på datamaskinen din.</li>
-      <li>
-        <strong>Windows:</strong> Dobbeltklikk på <code>WINDOWS-start-alt.bat</code><br>
-        <strong>Mac:</strong> Dobbeltklikk på <code>MacOS-start-alt.command</code>
-        <ul>
-          <li style="color:#b00; font-weight:bold;">Mac: Første gang må du gi filen kjøre-tillatelse!<br>
-            <span style="color:#222; font-weight:normal;">Hvis du får feilmelding om tilgang, åpne Terminal og lim inn kommandoen under, trykk Enter, og prøv igjen:</span>
-          </li>
-        </ul>
-        <div style="display:flex; align-items:center; gap:0.5rem; margin:0.5rem 0 1.5rem 0;">
-          <input id="chmodCopy" type="text" value="chmod +x MacOS-start-alt.command" readonly style="font-family:monospace; font-size:1rem; padding:0.3em 0.7em; border-radius:6px; border:1px solid #bbb; width:22em; background:#f8f8f8;">
-          <button onclick="copyChmod()" title="Kopier kommando" style="background:none; border:none; cursor:pointer; padding:0;">
-            <svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg>
-          </button>
-        </div>
-        <ul>
-          <li style="color:#b00; font-weight:bold;">Windows: Hvis du får advarsel om at filen ikke kan kjøres, høyreklikk på filen, velg "Egenskaper" og huk av for "Opphev blokkering" (Unblock) hvis det vises.</li>
-        </ul>
-      </li>
-      <li>Vent til det åpnes to terminalvinduer og alt starter automatisk.</li>
-      <li>Åpne denne <code>START-HER.html</code> i nettleseren.</li>
-      <li>Klikk på ønsket side under:</li>
-    </ol>
-
-    <div class="knapper">
-      <a class="knapp" href="/" target="_blank">Publikumsside</a>
-      <a class="knapp" href="/admin" target="_blank">Adminpanel</a>
-    </div>
-    <div style="margin-top:0.7rem; color:#444; font-size:1rem;">
-      Du kan også skrive <span style="font-family:monospace;">localhost:3000</span> eller <span style="font-family:monospace;">localhost:3000/admin</span> direkte i nettleseren.
-    </div>
-    <p style="margin-top:2rem;"><strong>Trenger du å legge inn grupper, poeng eller bilder?</strong> Se veiledningen lenger ned på siden.</p>
-
-    <h2 style="margin-top:2.5rem;">📌 Klar!</h2>
-    <p>Systemet kjører nå lokalt på din maskin. Ingen internett er nødvendig.</p>
-    <p>Du kan åpne denne veiledningen igjen ved å åpne <code>START-HER.html</code></p>
-
-
-    <!-- Avansert / manuell oppsett og feilsøking flyttet til bunn av siden -->
-    <div class="advanced-box">
-      <details>
-        <summary><span class="advanced-arrow" aria-hidden="true">&#9654;</span> <span class="advanced-title">Avansert / manuell oppsett og feilsøking</span></summary>
-        <div class="advanced-content">
-        <h2 style="color:#2a4a9c; font-size:1.15em; margin-bottom:0.7em;">Første gang? Installer Node.js</h2>
-        <ol>
-          <li>Gå til <a href="https://nodejs.org" target="_blank">nodejs.org</a> og last ned for ditt system.</li>
-          <li>Installer og åpne terminal/ledetekst.</li>
-          <li>Sjekk at Node.js er installert: <span style="display:inline-flex;align-items:center;gap:0.3em;margin-left:0.5em;"><input id="nodevCopy2" type="text" value="node -v" readonly style="font-family:monospace;font-size:1em;padding:0.15em 0.5em;border-radius:5px;border:1px solid #bbb;width:7.5em;background:#f8f8f8;"><button onclick="copyNodev2()" title="Kopier kommando" style="background:none;border:none;cursor:pointer;padding:0;vertical-align:middle;"><svg xmlns='http://www.w3.org/2000/svg' width='19' height='19' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg></button></span></li>
-        </ol>
-        <h2 style="color:#2a4a9c; font-size:1.15em; margin:1.2em 0 0.7em 0;">Installer pakken (første gang)</h2>
-        <ol>
-          <li>Åpne terminal/ledetekst i prosjektmappen.</li>
-          <li>Kjør: <span style="display:inline-flex;align-items:center;gap:0.3em;margin-left:0.5em;"><input id="npmInstallCopy2" type="text" value="npm install" readonly style="font-family:monospace;font-size:1em;padding:0.15em 0.5em;border-radius:5px;border:1px solid #bbb;width:9em;background:#f8f8f8;"><button onclick="copyNpmInstall2()" title="Kopier kommando" style="background:none;border:none;cursor:pointer;padding:0;vertical-align:middle;"><svg xmlns='http://www.w3.org/2000/svg' width='19' height='19' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg></button></span></li>
-        </ol>
-        <h2 style="color:#2a4a9c; font-size:1.15em; margin:1.2em 0 0.7em 0;">Starte systemet manuelt</h2>
-        <ol>
-          <li>Åpne to terminalvinduer.</li>
-          <li>I det første, skriv: <span style="display:inline-flex;align-items:center;gap:0.3em;margin-left:0.5em;"><input id="startHelperCopy2" type="text" value="node start-helper.js" readonly style="font-family:monospace;font-size:1em;padding:0.15em 0.5em;border-radius:5px;border:1px solid #bbb;width:13em;background:#f8f8f8;"><button onclick="copyStartHelper2()" title="Kopier kommando" style="background:none;border:none;cursor:pointer;padding:0;vertical-align:middle;"><svg xmlns='http://www.w3.org/2000/svg' width='19' height='19' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg></button></span></li>
-          <li>I det andre, skriv: <span style="display:inline-flex;align-items:center;gap:0.3em;margin-left:0.5em;"><input id="devCopy2" type="text" value="npm run dev" readonly style="font-family:monospace;font-size:1em;padding:0.15em 0.5em;border-radius:5px;border:1px solid #bbb;width:9em;background:#f8f8f8;"><button onclick="copyDev2()" title="Kopier kommando" style="background:none;border:none;cursor:pointer;padding:0;vertical-align:middle;"><svg xmlns='http://www.w3.org/2000/svg' width='19' height='19' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg></button></span></li>
-        </ol>
-        <h2 style="color:#2a4a9c; font-size:1.15em; margin:1.2em 0 0.7em 0;">Spesielt for Mac og Windows</h2>
-        <ul>
-          <li style="color:#b00; font-weight:bold;">Mac: Første gang må du gi filen kjøre-tillatelse!<br><span style="color:#222; font-weight:normal;">Hvis du får feilmelding om tilgang, åpne Terminal og lim inn: <span style="display:inline-flex;align-items:center;gap:0.3em;margin-left:0.5em;"><input id="chmodCopy2" type="text" value="chmod +x MacOS-start-alt.command" readonly style="font-family:monospace;font-size:1em;padding:0.15em 0.5em;border-radius:5px;border:1px solid #bbb;width:18em;background:#f8f8f8;"><button onclick="copyChmod2()" title="Kopier kommando" style="background:none;border:none;cursor:pointer;padding:0;vertical-align:middle;"><svg xmlns='http://www.w3.org/2000/svg' width='19' height='19' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg></button></span></span></li>
-          <li style="color:#b00; font-weight:bold;">Windows: Hvis du får advarsel om at filen ikke kan kjøres, høyreklikk på filen, velg "Egenskaper" og huk av for "Opphev blokkering" (Unblock) hvis det vises.</li>
-        </ul>
-        <h2 style="color:#2a4a9c; font-size:1.15em; margin:1.2em 0 0.7em 0;">Feilsøking</h2>
-        <ul>
-          <li>❗ Publikumssiden er tom? Sørg for at Excel-filen er valgt i admin og at du har trykket "Oppdater"</li>
-          <li>❗ Endringer vises ikke? Trykk "Oppdater" på nytt etter endringer i poeng/bilder</li>
-          <li>💾 Trykk "Last ned" i admin for å lagre backup av Excel-filen</li>
-          <li>🔁 Hvis alt låser seg, steng terminalen og start på nytt</li>
-        </ul>
-        </div>
-      </details>
-    </div>
-  <style>
-    /* ...existing code... */
+    .knapper {
+      display: flex;
+      gap: 1.2rem;
+      margin: 1.2rem 0 0.7rem 0;
+    }
+    .knapp {
+      background: #2a4a9c;
+      color: #fff;
+      padding: 0.7em 1.5em;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1.1rem;
+      transition: background 0.18s;
+      border: none;
+      box-shadow: 0 2px 8px rgba(42,74,156,0.07);
+    }
+    .knapp:hover {
+      background: #18336b;
+    }
+    code {
+      background: #e6eaff;
+      color: #2a4a9c;
+      border-radius: 5px;
+      padding: 0.1em 0.4em;
+      font-size: 1em;
+    }
+    pre {
+      background: #f7faff;
+      border-radius: 8px;
+      padding: 1em 1.2em;
+      font-size: 1em;
+      overflow-x: auto;
+      border: 1px solid #e6eaff;
+    }
     .advanced-box {
       margin-top: 2.5rem;
       border: 2px solid #2a4a9c;
@@ -233,9 +117,67 @@
       background: none;
       border-radius: 0 0 12px 12px;
     }
+    @media (max-width: 600px) {
+      .container {
+        padding: 1.1rem 0.5rem 1.5rem 0.5rem;
+      }
+      .advanced-box {
+        max-width: 98vw;
+      }
+    }
   </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Velkommen til Musikkvideouka-appen!</h1>
+    <p>Dette er en lokal webapp for å vise grupper og poeng under Musikkvideouka. Du har en <strong>publikumsside</strong> (for visning) og et <strong>adminpanel</strong> (for lærere/arrangører). Alt lagres lokalt – ingen internett kreves.</p>
 
+    <h2 style="margin-top:2.2rem;">🟢 Oppsett og oppstart</h2>
+    <ol>
+      <li>Denne applikasjonen krever Node.js for å fungere. Du kan laste ned Node.js:</li>
+      <ul>
+          <li>ved å bruke firmaportal dersom bedriften din har dette.</li>
+          <li>I MacOS kan du skrive <code>brew install node</code> i terminalen dersom du har Homebrew installert.</li>
+          <li>I Windows kan du laste ned og installere Node.js med <code>winget install OpenJS.NodeJS</code> i Windows PowerShell eller Kommandoprompt.
+          <li>Eller du kan laste ned Node.js fra <a href="https://nodejs.org/en/download/" target="_blank">https://nodejs.org/en/download/</a></li>
+        </ul>
+      <li>Deretter må du åpne en terminal/kommandolinje og navigere til mappen hvor prosjektet ligger.</li>
+      <ul>
+          <li>Hvis mappen ligger under nedlastninger, kan stien være slik: <code>cd nedlastinger/Musikkvideouka</code>  </li>
+      <li>Når du har navigert til prosjektmappen, kjører du <code>npm install</code> i terminalen/kommandolinjen første gang, for å installere nødvendige moduler.</li>
+      
+      <li><strong>Start serveren:</strong>
+        <ul>
+          <li><strong>Windows:</strong> Dobbeltklikk <code>Win-start-server.bat</code></li>
+          <li><strong>Mac:</strong> Dobbeltklikk <code>MacOS-start-alt.command</code> (gi evt. kjøre-tillatelse, se Avansert nederst)</li>
+          <li><strong>Manuelt:</strong> Kjør <code>node server.js</code> i terminalen</li>
+        </ul>
+      </li>
+    </ol>
 
+    <div class="knapper">
+      <a class="knapp" href="/" target="_blank">Publikumsside</a>
+      <a class="knapp" href="/admin" target="_blank">Adminpanel</a>
+    </div>
+    <div style="margin-top:0.7rem; color:#444; font-size:1rem;">
+      Du kan også skrive <span style="font-family:monospace;">localhost:3000</span> eller <span style="font-family:monospace;">localhost:3000/admin</span> direkte i nettleseren.
+    </div>
+
+    <h2 style="margin-top:2.2rem;">📝 Grupper, poeng og bilder</h2>
+    <ul>
+      <li>Finn og åpne Excel-malen (<code>MAL_Musikkvideouka.xlsx</code>) for å legge inn grupper, poeng og evt. bilde-sti (<code>/bilder/filnavn.jpg</code>).</li>
+      <li>Last opp eller rediger Excel-filen i adminpanelet. Du kan også lagre endringer direkte derfra.</li>
+      <li>Bilder du ønsker legges i <code>public/bilder</code>-mappen. Skriv filstien i Excel-filen som nevnt over.</li>
+      <li>All endring i adminpanelet oppdateres automatisk for publikum.</li>
+      <li>Du kan endre tekst, poeng og bilder når som helst.</li>
+      <li>For å trekke fra poeng: skriv et negativt tall (f.eks. <code>-7</code>) i poengfeltet og trykk Enter.</li>
+      <li>Det er lurt å laste ned sikkerhetskopi når ting ser ut som du ønsker første gang! Da er det enkelt å hente opp dersom noe skulle skje.</li>
+    </ul>
+    
+    <p style="margin-top:2rem;"><strong>Trenger du å legge inn grupper, poeng eller bilder?</strong> Se veiledningen lenger ned på siden.</p>
+    <h2 style="margin-top:2.5rem;">📌 Klar!</h2>
+    <p>Systemet kjører nå lokalt på din maskin. Ingen internett er nødvendig.</p>
+    <p>Du kan åpne denne veiledningen igjen ved å åpne <code>START-HER.html</code></p>
     <h2 style="margin-top:2.5rem;">🖼️ Bilder</h2>
     <ul>
       <li>Legg bildene dine i mappen <code>public/bilder</code> i prosjektet.</li>
@@ -248,28 +190,11 @@
       <li>Test gjerne bildeadressen i nettleseren først – hvis bildet åpnes direkte, er lenken god.</li>
       <li>Du kan bruke PNG, JPG eller GIF.</li>
     </ul>
-
-
-    <h2 style="margin-top:2.5rem;">🛠 Stoppe og starte systemet</h2>
-    <ul>
-      <li>For å <strong>stoppe</strong> serveren, klikk inne i terminalen og lim inn eller skriv følgende kommando, og trykk Enter:</li>
-    </ul>
-    <div style="display:flex; align-items:center; gap:0.5rem; margin:0.5rem 0 1.5rem 0;">
-      <input id="ctrlCCopy" type="text" value="Ctrl + C" readonly style="font-family:monospace; font-size:1rem; padding:0.3em 0.7em; border-radius:6px; border:1px solid #bbb; width:8em; background:#f8f8f8;">
-      <button onclick="navigator.clipboard.writeText('Ctrl + C')" title="Kopier kommando" style="background:none; border:none; cursor:pointer; padding:0;">
-        <svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg>
-      </button>
-    </div>
+  
     <ul>
       <li>For å <strong>starte på nytt</strong>, skriv eller lim inn følgende kommando i terminalen og trykk Enter:</li>
     </ul>
-    <div style="display:flex; align-items:center; gap:0.5rem; margin:0.5rem 0 1.5rem 0;">
-      <input id="nodeServerCopy" type="text" value="node server.js" readonly style="font-family:monospace; font-size:1rem; padding:0.3em 0.7em; border-radius:6px; border:1px solid #bbb; width:15em; background:#f8f8f8;">
-      <button onclick="copyNodeServer()" title="Kopier kommando" style="background:none; border:none; cursor:pointer; padding:0;">
-        <svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 20 20' fill='none'><rect x='5' y='7' width='9' height='9' rx='2' stroke='#2a4a9c' stroke-width='1.5' fill='#fff'/><rect x='7' y='5' width='8' height='9' rx='2' fill='#e6eaff' stroke='#2a4a9c' stroke-width='1.5'/></svg>
-      </button>
-    </div>
-
+    <!-- Kopier-knapp for node server.js er flyttet opp i veiledningen -->
     <h2 class="section-header">📁 Hva ligger i mappen?</h2>
     <p>Du skal ha en mappe som ser slik ut:</p>
     <pre>
@@ -288,228 +213,101 @@
 ├── package-lock.json      ← teknisk fil: versjoner og låsing av avhengigheter
 ├── node_modules/          ← mappe med installerte moduler (kommer etter "npm install")
     </pre>
-
+    <!-- Avansert / manuell oppsett og feilsøking flyttet til bunn av siden -->
+    <div class="advanced-box">
+      <details>
+        <summary><span class="advanced-arrow" aria-hidden="true">&#9654;</span> <span class="advanced-title">Avansert / manuell oppsett og feilsøking</span></summary>
+        <div class="advanced-content">
+          <h3>Manuell oppstart via terminal</h3>
+          <ol>
+            <li>Installer <strong>Node.js</strong> fra <a href="https://nodejs.org" target="_blank">nodejs.org</a> hvis du ikke har det.</li>
+            <li>Åpne terminal/kommandolinje i prosjektmappen.</li>
+            <li>Kjør <code>npm install</code> (første gang).</li>
+            <li>Kjør <code>node server.js</code> for å starte serveren.</li>
+            <li>Åpne <code>localhost:3000</code> eller <code>localhost:3000/admin</code> i nettleseren.</li>
+          </ol>
+          <h3>Mac: Gi kjøre-tillatelse til script</h3>
+          <ul>
+            <li>Kjør <code>chmod +x MacOS-start-alt.command</code> i terminalen hvis du får tilgangsfeil.</li>
+          </ul>
+          <h3>Feilsøking</h3>
+          <ul>
+            <li><strong>Publikumssiden er tom?</strong> Sjekk at Excel-filen er lastet opp i admin og trykk Oppdater.</li>
+            <li><strong>Endringer vises ikke?</strong> Trykk Oppdater på nytt etter endringer i poeng/bilder.</li>
+            <li><strong>Backup:</strong> Trykk Last ned i admin for å lagre backup av Excel-filen.</li>
+            <li><strong>Alt låser seg?</strong> Steng terminalen og start på nytt.</li>
+            <li><strong>Får du ikke startet serveren?</strong> Sjekk at Node.js er installert og at du står i riktig mappe.</li>
+          </ul>
+        </div>
+      </details>
+    </div>
   </div>
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      background: linear-gradient(to bottom, #f7f9fc, #dbe9ff);
-      color: #222;
-      margin: 0;
-      padding: 2rem;
-      line-height: 1.6;
+  <script>
+    // Toast-melding for kopiering
+    function showToast(msg) {
+      let toast = document.getElementById('toastMsg');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toastMsg';
+        toast.style.position = 'fixed';
+        toast.style.bottom = '32px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.background = '#2a4a9c';
+        toast.style.color = 'white';
+        toast.style.padding = '0.7em 1.5em';
+        toast.style.borderRadius = '8px';
+        toast.style.fontSize = '1.1em';
+        toast.style.zIndex = 9999;
+        toast.style.opacity = 0;
+        toast.style.transition = 'opacity 0.3s';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.style.opacity = 1;
+      setTimeout(() => { toast.style.opacity = 0; }, 1200);
     }
-    .container {
-      max-width: 900px;
-      margin: auto;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-      padding: 2rem;
-    }
-    h1 {
-      text-align: center;
-      color: #2a4a9c;
-    }
-    h2, .section-header {
-      color: #2a4a9c;
-      margin-top: 2rem;
-    }
-    pre {
-      background: #f0f0f0;
-      padding: 1rem;
-      border-radius: 8px;
-      overflow-x: auto;
-    }
-    code {
-      font-weight: bold;
-    }
-    .knapper {
-      margin-top: 2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      align-items: center;
-    }
-    .knapp {
-      background-color: #2a4a9c;
-      color: white;
-      padding: 1rem 2rem;
-      border: none;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 1.2rem;
-      font-weight: bold;
-      transition: background-color 0.3s ease;
-    }
-    .knapp:hover {
-      background-color: #1f3372;
-    }
-    @media (min-width: 600px) {
-      .knapper {
-        flex-direction: row;
-        justify-content: center;
+
+    // Kopier-funksjon som alltid kopierer riktig tekst og viser toast
+    function copyWithToast(inputId) {
+      const inp = document.getElementById(inputId);
+      if (!inp) return;
+      inp.select();
+      inp.setSelectionRange(0, 99999);
+      try {
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+        showToast('Kopiert!');
+      } catch (e) {
+        showToast('Klarte ikke å kopiere');
       }
     }
-    ul {
-      padding-left: 1.2rem;
-    }
-    ul li {
-      margin-bottom: 0.5rem;
-    }
-    .advanced-box {
-      width: 100%;
-      max-width: 100%;
-      border: 1px solid #2a4a9c;
-      border-radius: 12px;
-      background: #f7faff;
-      box-shadow: 0 4px 18px rgba(42,74,156,0.07);
-      margin: 2.5rem 0 0 0;
-    }
-    .advanced-box details {
-      margin: 0;
-      padding: 0;
-    }
-    .advanced-box summary {
-      display: flex;
-      align-items: center;
-      font-size: 1.13rem;
-      font-weight: bold;
-      color: #2a4a9c;
-      background: none;
-      border: none;
-      outline: none;
-      padding: 1.1em 1.2em 1.1em 1.2em;
-      cursor: pointer;
-      border-radius: 12px 12px 0 0;
-      transition: background 0.2s;
-      user-select: none;
-    }
-    .advanced-box summary:hover {
-      background: #e6eaff;
-    }
-    .advanced-arrow {
-      display: inline-block;
-      margin-right: 0.7em;
-      font-size: 1.2em;
-      transition: transform 0.2s;
-    }
-    .advanced-box details[open] > summary .advanced-arrow {
-      transform: rotate(90deg);
-    }
-    .advanced-title {
-      font-size: 1.13rem;
-      font-weight: bold;
-      color: #2a4a9c;
-    }
-    .advanced-content {
-      padding: 1.2em 1.5em 1.5em 1.5em;
-      background: none;
-      border-radius: 0 0 12px 12px;
-    }
-    .advanced-h2 {
-      color: #2a4a9c;
-      font-size: 1.15em;
-      margin: 1.2em 0 0.7em 0;
-    }
-    .inline-copy {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3em;
-      margin-left: 0.5em;
-    }
-    .inline-copy input {
-      font-family: monospace;
-      font-size: 1em;
-      padding: 0.15em 0.5em;
-      border-radius: 5px;
-      border: 1px solid #bbb;
-      width: auto;
-      background: #f8f8f8;
-    }
-    .inline-copy button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 0;
-      vertical-align: middle;
-    }
-    .mac-warning {
-      color: #b00;
-      font-weight: bold;
-    }
-    .mac-note {
-      color: #222;
-      font-weight: normal;
-    }
-    .win-warning {
-      color: #b00;
-      font-weight: bold;
-    }
-  </style>
-    <script>
-    function copyNodev() {
-      const inp = document.getElementById('nodevCopy');
-      inp.select();
-      inp.setSelectionRange(0, 99999);
-      document.execCommand('copy');
-    }
-    function copyNpmInstall() {
-      const inp = document.getElementById('npmInstallCopy');
-      inp.select();
-      inp.setSelectionRange(0, 99999);
-      document.execCommand('copy');
-    }
-    function copyStartHelper() {
-      const inp = document.getElementById('startHelperCopy');
-      inp.select();
-      inp.setSelectionRange(0, 99999);
-      document.execCommand('copy');
-    }
-    function copyDev() {
-      const inp = document.getElementById('devCopy');
-      inp.select();
-      inp.setSelectionRange(0, 99999);
-      document.execCommand('copy');
-    }
     function copyChmod() {
-      const inp = document.getElementById('chmodCopy');
-      inp.select();
-      inp.setSelectionRange(0, 99999);
-      document.execCommand('copy');
+      copyWithToast('chmodCopy');
     }
     // Advanced section copy functions
-    function copyNodev2() {
-      const inp = document.getElementById('nodevCopy2');
-      inp.select();
-      inp.setSelectionRange(0, 99999);
-      document.execCommand('copy');
-    }
-    function copyNpmInstall2() {
-      const inp = document.getElementById('npmInstallCopy2');
-      inp.select();
-      inp.setSelectionRange(0, 99999);
-      document.execCommand('copy');
-    }
-    function copyStartHelper2() {
-      const inp = document.getElementById('startHelperCopy2');
-      inp.select();
-      inp.setSelectionRange(0, 99999);
-      document.execCommand('copy');
-    }
-    function copyDev2() {
-      const inp = document.getElementById('devCopy2');
-      inp.select();
-      inp.setSelectionRange(0, 99999);
-      document.execCommand('copy');
-    }
-    function copyChmod2() {
-      const inp = document.getElementById('chmodCopy2');
-      inp.select();
-      inp.setSelectionRange(0, 99999);
-      document.execCommand('copy');
-    }
-    </script>
-  </div>
+    function copyNodev2() { copyWithToast('nodevCopy2'); }
+    function copyNpmInstall2() { copyWithToast('npmInstallCopy2'); }
+    function copyStartHelper2() { copyWithToast('startHelperCopy2'); }
+    function copyDev2() { copyWithToast('devCopy2'); }
+    function copyChmod2() { copyWithToast('chmodCopy2'); }
+
+    // Kopier Ctrl+C-kommando til utklippstavle
+    document.addEventListener('DOMContentLoaded', function() {
+      var copyBtn = document.getElementById('copyCtrlC');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', function() {
+          var input = document.getElementById('ctrlCCopy');
+          if (input) {
+            input.select();
+            input.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            copyBtn.classList.add('copied');
+            setTimeout(function() { copyBtn.classList.remove('copied'); }, 900);
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>
