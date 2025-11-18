@@ -8,56 +8,57 @@ body {
 
 .grupper-container {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: flex-start;
-  gap: 2rem;
-  padding: 2rem 2vw;
-  max-width: 96vw;
+  gap: var(--container-gap, 1.2rem);
+  padding: var(--container-padding, 1.2rem) 5vw;
+  width: 100vw;
   margin: 0 auto;
   flex-wrap: wrap;
+  height: 100vh;
+  box-sizing: border-box;
 }
 
 .kolonne {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: var(--kolonne-gap, 0.35rem);
   min-width: 300px;
+  max-width: 48%;
 }
 
 .gruppe {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.5rem 1rem;
+  gap: var(--gruppe-gap, 0.7rem);
+  padding: var(--gruppe-padding, 0.28rem 0.7rem);
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: 10px;
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
   transition: transform 0.5s cubic-bezier(0.4,0,0.2,1), box-shadow 0.5s, min-height 0.5s, padding 0.5s;
-  min-height: 70px;
-}
-
-.gruppe:hover {
-  transform: scale(1.02);
+  min-height: var(--gruppe-min-height, 48px);
+  position: relative;
+  z-index: 1;
 }
 
 .gruppe-bilde {
-  width: 60px;         /* LITT større enn opprinnelig */
-  height: 60px;
+  width: var(--bilde-size, 60px);
+  height: var(--bilde-size, 60px);
   border-radius: 10px;
   object-fit: cover;
   flex-shrink: 0;
 }
 
 .gruppe-navn {
-  font-size: 1.1rem;
+  font-size: var(--navn-font-size, 1.1rem);
   font-weight: 600;
   line-height: 1.2;
 }
 
 .gruppe-poeng {
-  font-size: 0.95rem;
+  font-size: var(--poeng-font-size, 0.95rem);
   opacity: 0.9;
 }
 
@@ -73,14 +74,15 @@ body {
   border: 3px solid gold;
   transform: scale(1.06);
   background: rgba(255, 255, 255, 0.14);
-  min-height: 85px;
-  padding: 0.8rem 1.3rem;
+  min-height: var(--vinner-min-height, 85px);
+  padding: var(--vinner-padding, 0.8rem 1.3rem);
   transition: transform 0.5s cubic-bezier(0.4,0,0.2,1), min-height 0.5s, padding 0.5s;
   box-shadow: 
     0 0 15px rgba(255, 215, 0, 0.4),
     0 0 30px rgba(255, 215, 0, 0.3),
     0 0 45px rgba(255, 215, 0, 0.2);
   animation: vinnerGlow 3s ease-in-out infinite;
+  z-index: 100;
 }
 
 @keyframes vinnerGlow {
@@ -152,19 +154,86 @@ body {
 }
 
 .vinner .gruppe-bilde {
-  width: 70px;
-  height: 70px;
+  width: var(--vinner-bilde-size, 70px);
+  height: var(--vinner-bilde-size, 70px);
 }
 
 .vinner .gruppe-navn {
-  font-size: 1.8rem;
+  font-size: var(--vinner-navn-font-size, 1.8rem);
   font-weight: bold;
   color: gold;
 }
 
 .vinner .gruppe-poeng {
-  font-size: 1.5rem;
+  font-size: var(--vinner-poeng-font-size, 1.5rem);
   font-weight: 600;
+}
+
+/* Andreplassen – sølv glow */
+.solv {
+  border: 2px solid silver;
+  background: rgba(255, 255, 255, 0.12);
+  transform: scale(1.03);
+  box-shadow: 
+    0 0 10px rgba(192, 192, 192, 0.3),
+    0 0 20px rgba(192, 192, 192, 0.2),
+    0 0 30px rgba(192, 192, 192, 0.15);
+  animation: solvGlow 3s ease-in-out infinite;
+  z-index: 50;
+}
+
+@keyframes solvGlow {
+  0% {
+    box-shadow: 
+      0 0 10px rgba(192, 192, 192, 0.3),
+      0 0 20px rgba(192, 192, 192, 0.2),
+      0 0 30px rgba(192, 192, 192, 0.15);
+  }
+  50% {
+    box-shadow: 
+      0 0 15px rgba(192, 192, 192, 0.4),
+      0 0 25px rgba(192, 192, 192, 0.3),
+      0 0 40px rgba(192, 192, 192, 0.2);
+  }
+  100% {
+    box-shadow: 
+      0 0 10px rgba(192, 192, 192, 0.3),
+      0 0 20px rgba(192, 192, 192, 0.2),
+      0 0 30px rgba(192, 192, 192, 0.15);
+  }
+}
+
+/* Tredjeplassen – bronse glow */
+.bronse {
+  border: 2px solid #CD7F32;
+  background: rgba(255, 255, 255, 0.11);
+  box-shadow: 
+    0 0 10px rgba(205, 127, 50, 0.3),
+    0 0 20px rgba(205, 127, 50, 0.2),
+    0 0 30px rgba(205, 127, 50, 0.15);
+  animation: bronseGlow 3s ease-in-out infinite;
+  z-index: 40;
+}
+
+@keyframes bronseGlow {
+  0% {
+    box-shadow: 
+      0 0 10px rgba(205, 127, 50, 0.3),
+      0 0 20px rgba(205, 127, 50, 0.2),
+      0 0 30px rgba(205, 127, 50, 0.15);
+  }
+  50% {
+    box-shadow: 
+      0 0 15px rgba(205, 127, 50, 0.4),
+      0 0 25px rgba(205, 127, 50, 0.3),
+      0 0 40px rgba(205, 127, 50, 0.2);
+  }
+  100% {
+    box-shadow: 
+      0 0 10px rgba(205, 127, 50, 0.3),
+      0 0 20px rgba(205, 127, 50, 0.2),
+      0 0 30px rgba(205, 127, 50, 0.15);
+  }
 }
 
 /* === Konfetti-effekt === */

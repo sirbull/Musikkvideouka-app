@@ -8,6 +8,39 @@ function oppdaterGrupper(grupper) {
     const container1 = document.getElementById('kolonne1');
     const container2 = document.getElementById('kolonne2');
 
+    // Beregn dynamisk skalering basert på antall grupper
+    const antallGrupper = grupper.length;
+    const maxGrupperPerKolonne = Math.ceil(antallGrupper / 2);
+    const grupperContainer = document.querySelector('.grupper-container');
+    
+    // Dynamisk skalering basert på antall grupper per kolonne
+    // Målet er å passe alle grupper inn på 1080px høyde
+    let scale = 1;
+    if (maxGrupperPerKolonne > 10) {
+        // Hvis det er mer enn 10 grupper per kolonne, skal vi skalere ned
+        scale = Math.max(0.5, 10 / maxGrupperPerKolonne);
+    } else if (maxGrupperPerKolonne < 8) {
+        // Hvis det er mindre enn 8 grupper, kan vi skalere opp litt
+        scale = Math.min(1.2, 8 / maxGrupperPerKolonne);
+    }
+    
+    // Sett CSS-variabler for dynamisk skalering
+    const root = document.documentElement;
+    root.style.setProperty('--container-gap', `${1.2 * scale}rem`);
+    root.style.setProperty('--container-padding', `${1.2 * scale}rem`);
+    root.style.setProperty('--kolonne-gap', `${0.35 * scale}rem`);
+    root.style.setProperty('--gruppe-gap', `${0.7 * scale}rem`);
+    root.style.setProperty('--gruppe-padding', `${0.28 * scale}rem ${0.7 * scale}rem`);
+    root.style.setProperty('--gruppe-min-height', `${48 * scale}px`);
+    root.style.setProperty('--bilde-size', `${60 * scale}px`);
+    root.style.setProperty('--navn-font-size', `${1.1 * scale}rem`);
+    root.style.setProperty('--poeng-font-size', `${0.95 * scale}rem`);
+    root.style.setProperty('--vinner-min-height', `${85 * scale}px`);
+    root.style.setProperty('--vinner-padding', `${0.8 * scale}rem ${1.3 * scale}rem`);
+    root.style.setProperty('--vinner-bilde-size', `${70 * scale}px`);
+    root.style.setProperty('--vinner-navn-font-size', `${1.8 * scale}rem`);
+    root.style.setProperty('--vinner-poeng-font-size', `${1.5 * scale}rem`);
+
     // FLIP: Første - lagre posisjoner
     const allGruppeDivs = [...container1.children, ...container2.children];
     const firstRects = new Map();
@@ -34,23 +67,23 @@ function oppdaterGrupper(grupper) {
 
 
     // === DEL GRUPPENE I TO KOLONNER ===
-    // Flytt første gruppe fra høyre til nederst i venstre kolonne
-    const maxVenstre = 8;
-    let kolonne1 = grupper.slice(0, maxVenstre);
-    let kolonne2 = grupper.slice(maxVenstre);
-    if (kolonne2.length > 0) {
-        // Ta ut første fra høyre og legg til nederst i venstre
-        kolonne1 = kolonne1.concat(kolonne2.shift());
-    }
+    // Venstre kolonne får første halvdel, høyre kolonne får andre halvdel
+    const halvparten = Math.ceil(grupper.length / 2);
+    let kolonne1 = grupper.slice(0, halvparten);
+    let kolonne2 = grupper.slice(halvparten);
 
     // === GENERER ELEMENTER FOR HVER GRUPPE ===
-    function lagGruppeElement(gruppe, erForste) {
+    function lagGruppeElement(gruppe, plassering) {
 
         const div = document.createElement('div');
         div.className = 'gruppe';
         div.dataset.id = gruppe.navn;
-        if (erForste) {
+        if (plassering === 1) {
             div.classList.add('vinner'); // ekstra stil for førsteplass
+        } else if (plassering === 2) {
+            div.classList.add('solv'); // sølv glow for andreplassen
+        } else if (plassering === 3) {
+            div.classList.add('bronse'); // bronse glow for tredjeplassen
         }
 
 
@@ -80,11 +113,11 @@ function oppdaterGrupper(grupper) {
 
     // === VIS GRUPPENE I KOLONNE 1 ===
     kolonne1.forEach((gruppe, index) => {
-        const erForste = index === 0;
-        const element = lagGruppeElement(gruppe, erForste);
+        const plassering = index + 1; // 1, 2, 3, ...
+        const element = lagGruppeElement(gruppe, plassering);
         
         // Legg til ekstra celebration-animasjon hvis dette er ny vinner
-        if (erForste && forrigeVinner !== null && forrigeVinner !== gruppe.navn) {
+        if (plassering === 1 && forrigeVinner !== null && forrigeVinner !== gruppe.navn) {
             element.classList.add('ny-vinner');
             // Fjern klassen etter animasjon er ferdig
             setTimeout(() => {
@@ -96,8 +129,9 @@ function oppdaterGrupper(grupper) {
     });
 
     // === VIS GRUPPENE I KOLONNE 2 ===
-    kolonne2.forEach(gruppe => {
-        const element = lagGruppeElement(gruppe, false);
+    kolonne2.forEach((gruppe, index) => {
+        const plassering = kolonne1.length + index + 1;
+        const element = lagGruppeElement(gruppe, plassering);
         container2.appendChild(element);
     });
 
