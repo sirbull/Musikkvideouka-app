@@ -39,8 +39,7 @@ Last ned eller klon denne mappen til din datamaskin.
 Hvis du ønsker å starte systemet manuelt:
 ```sh
 npm install
-node start-helper.js
-npm run dev
+server.js
 ```
 
 ## Feilsøking
