@@ -33,6 +33,29 @@
       <button id="add-group-button">Ny gruppe</button>
       <button id="download-button">Last ned</button>
     </div>
+    <div style="display: flex; justify-content: center; margin-top: 2.5em;">
+      <button id="show-winner-btn" class="winner-btn">VIS VINNER</button>
+      <style>
+        .winner-btn {
+          background: #c00;
+          color: #fff;
+          font-weight: bold;
+          font-size: 1.3em;
+          border: none;
+          border-radius: 8px;
+          padding: 1em 2.5em;
+          box-shadow: 0 2px 8px #0003;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+        .winner-btn:hover {
+          background: #e22;
+        }
+        .winner-btn:active {
+          background: #a00;
+        }
+      </style>
+    </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>

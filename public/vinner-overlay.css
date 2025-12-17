@@ -1,0 +1,115 @@
+#vinner-overlay-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 9998;
+  display: none;
+}
+#vinner-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.vinner-fireworks {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.vinner-mainbox {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+}
+.vinner-bildebox {
+  background: #fff;
+  border-radius: 30px;
+  box-shadow: 0 8px 32px #0008;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vinner-bildebox img {
+  width: 340px;
+  height: 340px;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: 0 2px 16px #0006;
+}
+.vinner-navnbox {
+  background: #222;
+  color: gold;
+  font-size: 2.5rem;
+  font-weight: bold;
+  border-radius: 18px;
+  padding: 1.2rem 2.5rem;
+  text-align: center;
+  box-shadow: 0 2px 12px #0005;
+}
+.vinner-poengbox {
+  background: gold;
+  color: #222;
+  font-size: 2.2rem;
+  font-weight: bold;
+  border-radius: 14px;
+  padding: 0.8rem 2.2rem;
+  margin-top: 0.5rem;
+  box-shadow: 0 2px 10px #0004;
+}
+.vinner-topp3 {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  z-index: 3;
+}
+.vinner-topp3 .plassbox {
+  min-width: 320px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px #0003;
+  padding: 1.1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #222;
+  border: 4px solid transparent;
+}
+.vinner-topp3 .plassbox.solv {
+  border-color: silver;
+}
+.vinner-topp3 .plassbox.bronse {
+  border-color: #CD7F32;
+}
+.vinner-topp3 .plassbox.gull {
+  border-color: gold;
+}
+.vinner-topp3 .plassbox img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 1px 6px #0002;
+}
+#vinner-overlay .close-hint {
+  color: #fff;
+  font-size: 1.1rem;
+  margin-top: 2.5rem;
+  opacity: 0.7;
+  text-align: center;
+  z-index: 10;
+}

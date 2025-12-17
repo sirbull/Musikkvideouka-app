@@ -1,3 +1,20 @@
+// === Vinner-knapp funksjonalitet ===
+window.addEventListener('DOMContentLoaded', function() {
+    const winnerBtn = document.getElementById('show-winner-btn');
+    if (winnerBtn) {
+        winnerBtn.addEventListener('click', function() {
+            if (!confirm('Er du sikker på at du vil annonsere vinneren? Dette vises for publikum!')) return;
+            // Hent grupper fra skjemaet
+            const grupper = hentGruppeDataFraSkjema();
+            // Sorter på poeng, høyest først
+            grupper.sort((a, b) => b.poeng - a.poeng);
+            // Ta topp 3
+            const topp3 = grupper.slice(0, 3);
+            // Send til publikum
+            socket.emit('vis-vinner-overlay', topp3);
+        });
+    }
+});
 let data = [];
 const socket = io();
 

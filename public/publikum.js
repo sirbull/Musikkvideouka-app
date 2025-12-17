@@ -193,3 +193,74 @@ function visKonfetti() {
         }, 4000);
     }
 }
+
+// === Vinner-overlay: vis overlay når admin trykker på vinner-knappen ===
+socket.on('vis-vinner-overlay', (topp3) => {
+    if (!Array.isArray(topp3) || topp3.length === 0) return;
+    const overlayBg = document.getElementById('vinner-overlay-bg');
+    const overlay = document.getElementById('vinner-overlay');
+    const fireworksDiv = overlay.querySelector('.vinner-fireworks');
+    const mainbox = overlay.querySelector('.vinner-mainbox');
+    const topp3box = overlay.querySelector('.vinner-topp3');
+
+    // Fade ut resten av siden
+    overlayBg.style.display = 'block';
+    overlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    // Fyrverkeri: restart animasjon
+    if (typeof window.Stage === 'function') {
+        // Fjerner gamle canvas hvis de finnes
+        fireworksDiv.innerHTML = '';
+        // Kopier innhold fra fireworks.html (canvasene)
+        const trails = document.createElement('canvas');
+        trails.id = 'trails-canvas';
+        const main = document.createElement('canvas');
+        main.id = 'main-canvas';
+        fireworksDiv.appendChild(trails);
+        fireworksDiv.appendChild(main);
+        // Initier fireworks.js på nytt
+        if (window.init) window.init();
+    }
+
+    // Vinnerboks
+    const vinner = topp3[0];
+    mainbox.innerHTML = `
+      <div class="vinner-bildebox"><img src="${vinner.bildeUrl || ''}" alt="${vinner.navn}"></div>
+      <div class="vinner-navnbox">${vinner.navn}</div>
+      <div class="vinner-poengbox">${vinner.poeng}</div>
+    `;
+
+    // Andre- og tredjeplass
+    topp3box.innerHTML = '';
+    if (topp3[1]) {
+      topp3box.innerHTML += `
+        <div class="plassbox solv">
+          <img src="${topp3[1].bildeUrl || ''}" alt="${topp3[1].navn}">
+          <span>${topp3[1].navn}</span>
+          <span style="margin-left:auto;font-weight:bold;">${topp3[1].poeng}</span>
+        </div>
+      `;
+    }
+    if (topp3[2]) {
+      topp3box.innerHTML += `
+        <div class="plassbox bronse">
+          <img src="${topp3[2].bildeUrl || ''}" alt="${topp3[2].navn}">
+          <span>${topp3[2].navn}</span>
+          <span style="margin-left:auto;font-weight:bold;">${topp3[2].poeng}</span>
+        </div>
+      `;
+    }
+
+    // Lukk overlay på klikk eller ESC
+    function closeOverlay() {
+      overlayBg.style.display = 'none';
+      overlay.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    overlayBg.onclick = closeOverlay;
+    overlay.onclick = closeOverlay;
+    document.onkeydown = (e) => {
+      if (e.key === 'Escape') closeOverlay();
+    };
+});

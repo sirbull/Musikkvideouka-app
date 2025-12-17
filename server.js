@@ -118,13 +118,13 @@ setInterval(() => {
 // === Start server ===
 server.listen(3000, () => {
   console.log('🚀 Server kjører på http://localhost:3000');
-  
-  // Åpne nettleseren automatisk med publikum og admin
   setTimeout(() => {
     const openUrl = platform() === 'win32' ? 'start' : 'open';
+    // Åpne publikumssiden
     exec(`${openUrl} http://localhost:3000/`, (err) => {
       if (err) console.error('Kunne ikke åpne publikumsside:', err);
     });
+    // Åpne admin-siden
     exec(`${openUrl} http://localhost:3000/admin`, (err) => {
       if (err) console.error('Kunne ikke åpne adminpanel:', err);
     });
