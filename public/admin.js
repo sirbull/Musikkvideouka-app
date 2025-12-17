@@ -134,6 +134,7 @@ function displayData(dataRows) {
         const addPointsInput = document.createElement('input');
         addPointsInput.type = 'number';
         addPointsInput.placeholder = 'Legg til/trekk poeng';
+        addPointsInput.classList.add('points-input');
 
         // === Skjult input-felt for poengverdi ===
         const hiddenPointsInput = document.createElement('input');
