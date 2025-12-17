@@ -8,10 +8,13 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-const excelFile = path.join(__dirname, 'Musikkvideouka.xlsx');
+const excelFile = path.join(__dirname, 'MAL_Musikkvideouka.xlsx');
 // === Åpne Excel-fil automatisk ved oppstart (dummy-løsning) ===
 const { exec } = require('child_process');
-exec(`open "${excelFile}"`, (err) => {
+const { platform } = require('os');
+
+const openCommand = platform() === 'win32' ? `start "" "${excelFile}"` : `open "${excelFile}"`;
+exec(openCommand, (err) => {
   if (err) {
     console.error('Kunne ikke åpne Musikkvideouka.xlsx:', err);
   } else {
@@ -48,11 +51,23 @@ function hentGruppeDataFraExcel() {
     const wb = XLSX.readFile(excelFile);
     const ws = wb.Sheets[wb.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(ws);
-    return data.map(row => ({
-      navn: row['Navn'] || 'Ukjent',
-      poeng: parseInt(row['Poeng']) || 0,
-      bildeUrl: row['Bilde'] || '/bilder/default.jpg'
-    }));
+    console.log('📊 Excel-data hentet:', data);
+    const grupper = data.map(row => {
+      let bildeUrl = row['Bilde'] || '/album_covers/default.jpg';
+      
+      // Hvis bildestien ikke starter med /, antar vi at det er et filnavn i album_covers/
+      if (bildeUrl && !bildeUrl.startsWith('/')) {
+        bildeUrl = `/album_covers/${bildeUrl}`;
+      }
+      
+      return {
+        navn: row['Navn'] || 'Ukjent',
+        poeng: parseInt(row['Poeng']) || 0,
+        bildeUrl: bildeUrl
+      };
+    });
+    console.log('✅ Behandlet grupper:', grupper);
+    return grupper;
   } catch (error) {
     console.error('❌ Feil ved lesing av Excel-fil:', error);
     return [];
@@ -106,10 +121,11 @@ server.listen(3000, () => {
   
   // Åpne nettleseren automatisk med publikum og admin
   setTimeout(() => {
-    exec('open http://localhost:3000/', (err) => {
+    const openUrl = platform() === 'win32' ? 'start' : 'open';
+    exec(`${openUrl} http://localhost:3000/`, (err) => {
       if (err) console.error('Kunne ikke åpne publikumsside:', err);
     });
-    exec('open http://localhost:3000/admin', (err) => {
+    exec(`${openUrl} http://localhost:3000/admin`, (err) => {
       if (err) console.error('Kunne ikke åpne adminpanel:', err);
     });
   }, 1000);

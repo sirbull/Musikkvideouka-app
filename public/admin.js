@@ -51,10 +51,14 @@ function displayData(dataRows) {
 
 
     // === Bilde ===
-    // Nå forventes at "Bilde"-kolonnen i Excel inneholder en relativ URL, f.eks. /album_covers/artist_1.png
-    // Denne brukes direkte som src for <img>
+    // Støtte for flere formater i Excel: absolutt URL, ledende /-sti, data-URI eller bare filnavn.
+    // Hvis det kun er filnavn (f.eks. "5.png" eller "gruppe_5.jpg"), antas det å ligge i /album_covers/
     const imgElement = document.createElement('img');
-    imgElement.src = row[1] || '';
+    let imageSrc = row[1] || '';
+    if (imageSrc && !imageSrc.startsWith('data:') && !imageSrc.startsWith('/') && !imageSrc.match(/^https?:\/\//i)) {
+        imageSrc = `/album_covers/${imageSrc}`;
+    }
+    imgElement.src = imageSrc;
     imgElement.style.width = '50px';
     imgElement.style.height = '50px';
     imgElement.style.objectFit = 'cover';
@@ -159,9 +163,30 @@ function displayData(dataRows) {
             data[index][0] = groupNameInput.value;
         });
         imgElement.addEventListener('load', function () {
-            bildeInput.value = imgElement.src;
+            // Når bildet er lastet inn, lagre den virkelige src i skjult input.
+            // Hvis kilden er en data-URI fra opplasting, behold den. Ellers, sørg for at vi lagrer en absolut/stabil sti.
+            let val = imgElement.src || '';
+            // Hvis browser har resolvert en relativ sti til absolutt URL, og den peker tilbake til vår host,
+            // konverter den til en rot-relative sti hvis mulig (for ryddighet).
+            try {
+                const u = new URL(val, window.location.href);
+                if (u.origin === window.location.origin) {
+                    val = u.pathname + u.search + u.hash;
+                }
+            } catch (e) {
+                // ignore
+            }
+            bildeInput.value = val;
         });
     });
+
+    // Etter at vi har vist alle rader i admin, send data direkte til publikum slik at siden oppdateres.
+    // Dette lar deg laste en ny Excel-fil i admin og umiddelbart oppdatere publikum uten å klikke "Oppdater" per rad.
+    const grupperForPublikum = hentGruppeDataFraSkjema();
+    if (grupperForPublikum && grupperForPublikum.length > 0) {
+        socket.emit('oppdaterFraAdmin', grupperForPublikum);
+        console.log('📤 Automatisk sendt innlastede grupper til publikum:', grupperForPublikum);
+    }
 }
 
 // === Last ned som Excel (backup) ===
