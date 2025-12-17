@@ -1,6 +1,30 @@
 'use strict';
 console.clear();
 
+// Enkel stub for Stage-klasse for å unngå feil hvis Stage ikke er definert fra før
+class Stage {
+	constructor(id) {
+		// Opprett et canvas-element hvis det ikke finnes fra før
+		let canvas = document.getElementById(id);
+		if (!canvas) {
+			canvas = document.createElement('canvas');
+			canvas.id = id;
+			document.body.appendChild(canvas);
+		}
+		this.canvas = canvas;
+		this.ctx = canvas.getContext('2d');
+		this.width = canvas.width = window.innerWidth;
+		this.height = canvas.height = window.innerHeight;
+		this.dpr = window.devicePixelRatio || 1;
+	}
+	resize(w, h) {
+		this.width = this.canvas.width = w;
+		this.height = this.canvas.height = h;
+	}
+	addEventListener() {}
+	removeEventListener() {}
+}
+
 // This is a prime example of what starts out as a simple project
 // and snowballs way beyond its intended size. It's a little clunky
 // reading/working on this single file, but here it is anyways :)

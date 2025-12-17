@@ -56,6 +56,21 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// === Hent og vis grupper fra server ved lasting av siden ===
+window.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/grupper')
+        .then(res => res.json())
+        .then(grupper => {
+            // Konverter til array av arrays slik displayData forventer
+            const rows = grupper.map(g => [g.navn, g.bildeUrl, g.poeng]);
+            if (rows.length > 0) {
+                displayData(rows);
+                if (uploadWarning) uploadWarning.style.display = 'none';
+            }
+        })
+        .catch(() => {});
+});
+
 // === Vise dataene i admin-grensesnittet ===
 function displayData(dataRows) {
     data = dataRows;
@@ -213,7 +228,7 @@ document.getElementById('download-button').addEventListener('click', function ()
     const pad = n => n.toString().padStart(2, '0');
     const dato = pad(now.getDate()) + pad(now.getMonth() + 1) + now.getFullYear();
     const tid = pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
-    const filnavn = `Musikkvideouka-${dato}-${tid}.xlsx`;
+    const filnavn = `Musikkvideauka-${dato}-${tid}.xlsx`;
 
     // Header
     const dataForExcel = [["Navn", "Bilde", "Poeng"]];

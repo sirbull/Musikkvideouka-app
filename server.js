@@ -1,26 +1,16 @@
 const express = require('express');
+const { exec } = require('child_process');
 const path = require('path');
 const http = require('http');
 const socketIo = require('socket.io');
 const XLSX = require('xlsx');
+const os = require('os');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
 const excelFile = path.join(__dirname, 'MUSIKKVIDEOUKA2025.xlsx');
-// === Åpne Excel-fil automatisk ved oppstart (dummy-løsning) ===
-const { exec } = require('child_process');
-const { platform } = require('os');
-
-const openCommand = platform() === 'win32' ? `start "" "${excelFile}"` : `open "${excelFile}"`;
-exec(openCommand, (err) => {
-  if (err) {
-    console.error('Kunne ikke åpne Musikkvideouka.xlsx:', err);
-  } else {
-    console.log('Åpnet Musikkvideouka.xlsx med standardprogram.');
-  }
-});
 let sisteGrupper = []; // Lokalt minne med siste gruppeoppdatering fra admin
 
 // === Statisk og HTML ===
@@ -119,7 +109,7 @@ setInterval(() => {
 server.listen(3000, () => {
   console.log('🚀 Server kjører på http://localhost:3000');
   setTimeout(() => {
-    const openUrl = platform() === 'win32' ? 'start' : 'open';
+    const openUrl = os.platform() === 'win32' ? 'start' : 'open';
     // Åpne publikumssiden
     exec(`${openUrl} http://localhost:3000/`, (err) => {
       if (err) console.error('Kunne ikke åpne publikumsside:', err);
