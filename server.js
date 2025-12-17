@@ -96,6 +96,12 @@ io.on('connection', (socket) => {
     sisteGrupper = grupper;
     io.emit('oppdaterFraServer', grupper);
   });
+
+  // Når admin trykker "Vis vinner"-knappen
+  socket.on('vis-vinner-overlay', (topp3) => {
+    console.log('🏆 Mottatt vis-vinner-overlay fra admin, sender til publikum:', topp3);
+    io.emit('vis-vinner-overlay', topp3);
+  });
 });
 
 // === Push siste admin-data til publikum hvert 3. sekund ===

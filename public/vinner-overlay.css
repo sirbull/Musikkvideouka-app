@@ -1,7 +1,7 @@
 #vinner-overlay-bg {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.85);
+  background: rgba(0,0,0,0.7);
   z-index: 9998;
   display: none;
 }
@@ -18,76 +18,180 @@
 .vinner-fireworks {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 0;
   pointer-events: none;
+  overflow: hidden;
+}
+.vinner-fireworks canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 .vinner-mainbox {
   position: relative;
-  z-index: 2;
+  z-index: 100;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2.5rem;
+  gap: 1rem;
+  margin-top: -3rem;
+}
+.vinner-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.vinner-title {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  font-size: 6rem;
+  letter-spacing: 0.1em;
+  color: transparent;
+  margin: 0;
+  line-height: 1;
+  white-space: nowrap;
+  padding: 0;
+  font-weight: 700;
+  display: inline-block;
+}
+.vinner-title:before {
+  content: attr(data-text);
+  position: absolute;
+  top: -15px;
+  left: -25px;
+  right: -25px;
+  bottom: -15px;
+  background: linear-gradient(30deg, gold, rgb(97, 82, 9), gold);
+  -webkit-background-clip: text;
+  -webkit-text-stroke: 10px transparent;
+  color: white;
+  padding: 15px 25px;
+}
+.vinner-title:after {
+  content: attr(data-text);
+  position: absolute;
+  top: -15px;
+  left: -25px;
+  right: -25px;
+  bottom: -15px;
+  background: radial-gradient(circle, white, transparent 50%) center / 25% 25%,
+    radial-gradient(circle, white, black 50%) center / 12.5% 12.5%;
+  -webkit-background-clip: text;
+  -webkit-text-stroke: 10px transparent;
+  mix-blend-mode: color-dodge;
+  animation: vinner-shine 10s linear infinite;
+  padding: 15px 25px;
+}
+
+@keyframes vinner-shine {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% -100%;
+  }
 }
 .vinner-bildebox {
-  background: #fff;
+  background: linear-gradient(to right, rgba(0, 4, 40, 0.5), rgba(0, 78, 146, 0.5));
+  border: 3px solid gold;
   border-radius: 30px;
-  box-shadow: 0 8px 32px #0008;
   padding: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 
+    0 0 15px rgba(255, 215, 0, 0.4),
+    0 0 30px rgba(255, 215, 0, 0.3),
+    0 0 45px rgba(255, 215, 0, 0.2);
+  animation: vinnerGlow 3s ease-in-out infinite;
+}
+
+@keyframes vinnerGlow {
+  0% {
+    box-shadow: 
+      0 0 15px rgba(255, 215, 0, 0.4),
+      0 0 30px rgba(255, 215, 0, 0.3),
+      0 0 45px rgba(255, 215, 0, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 0 20px rgba(255, 215, 0, 0.5),
+      0 0 40px rgba(255, 215, 0, 0.4),
+      0 0 60px rgba(255, 215, 0, 0.3);
+  }
+  100% {
+    box-shadow: 
+      0 0 15px rgba(255, 215, 0, 0.4),
+      0 0 30px rgba(255, 215, 0, 0.3),
+      0 0 45px rgba(255, 215, 0, 0.2);
+  }
 }
 .vinner-bildebox img {
-  width: 340px;
-  height: 340px;
+  width: 260px;
+  height: 260px;
   object-fit: cover;
   border-radius: 20px;
   box-shadow: 0 2px 16px #0006;
 }
 .vinner-navnbox {
-  background: #222;
-  color: gold;
-  font-size: 2.5rem;
+  background: linear-gradient(to right, rgba(0, 4, 40, 0.5), rgba(0, 78, 146, 0.5));
+  color: white;
+  font-size: 2rem;
   font-weight: bold;
+  border: 3px solid gold;
   border-radius: 18px;
-  padding: 1.2rem 2.5rem;
+  padding: 0.8rem 2rem;
   text-align: center;
-  box-shadow: 0 2px 12px #0005;
+  box-shadow: 
+    0 0 15px rgba(255, 215, 0, 0.4),
+    0 0 30px rgba(255, 215, 0, 0.3),
+    0 0 45px rgba(255, 215, 0, 0.2);
+  animation: vinnerGlow 3s ease-in-out infinite;
 }
 .vinner-poengbox {
   background: gold;
   color: #222;
-  font-size: 2.2rem;
+  font-size: 1.8rem;
   font-weight: bold;
-  border-radius: 14px;
-  padding: 0.8rem 2.2rem;
-  margin-top: 0.5rem;
-  box-shadow: 0 2px 10px #0004;
+  border: 3px solid gold;
+  border-radius: 18px;
+  padding: 0.8rem 1.8rem;
+  box-shadow: 
+    0 0 15px rgba(255, 215, 0, 0.4),
+    0 0 30px rgba(255, 215, 0, 0.3),
+    0 0 45px rgba(255, 215, 0, 0.2);
+  animation: vinnerGlow 3s ease-in-out infinite;
 }
 .vinner-topp3 {
   position: absolute;
-  bottom: 2.5rem;
-  left: 0;
-  right: 0;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  justify-content: center;
-  gap: 2.5rem;
-  z-index: 3;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  z-index: 100;
 }
 .vinner-topp3 .plassbox {
-  min-width: 320px;
-  background: #fff;
-  border-radius: 16px;
+  min-width: 250px;
+  background: linear-gradient(to right, rgba(0, 4, 40, 0.5), rgba(0, 78, 146, 0.5));
+  border-radius: 8px;
   box-shadow: 0 2px 10px #0003;
-  padding: 1.1rem 1.5rem;
+  padding: 0.3rem 0.6rem;
   display: flex;
   align-items: center;
-  gap: 1.2rem;
-  font-size: 1.3rem;
+  gap: 0.5rem;
+  font-size: 0.75rem;
   font-weight: bold;
-  color: #222;
-  border: 4px solid transparent;
+  color: white;
+  border: 2px solid transparent;
+  min-height: 40px;
 }
 .vinner-topp3 .plassbox.solv {
   border-color: silver;
@@ -99,17 +203,92 @@
   border-color: gold;
 }
 .vinner-topp3 .plassbox img {
-  width: 60px;
-  height: 60px;
+  width: 30px;
+  height: 30px;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: 5px;
   box-shadow: 0 1px 6px #0002;
 }
 #vinner-overlay .close-hint {
-  color: #fff;
-  font-size: 1.1rem;
-  margin-top: 2.5rem;
-  opacity: 0.7;
-  text-align: center;
-  z-index: 10;
+  display: none;
+}
+
+/* Stjernehimmel */
+.stars-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(rgba(22, 22, 29, 0.3), rgba(31, 31, 58, 0.3), rgba(59, 47, 74, 0.3));
+  overflow: hidden;
+}
+
+.stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+.stars:nth-child(2) {
+  animation-delay: -1.32s;
+}
+
+.stars:nth-child(3) {
+  animation-delay: -2.64s;
+}
+
+@keyframes twinkle {
+  25% {
+    opacity: 0;
+  }
+}
+
+.star {
+  fill: white;
+}
+
+.star:nth-child(3n) {
+  opacity: 0.8;
+}
+
+.star:nth-child(7n) {
+  opacity: 0.6;
+}
+
+.star:nth-child(13n) {
+  opacity: 0.4;
+}
+
+.star:nth-child(19n) {
+  opacity: 0.2;
+}
+
+.comet {
+  transform-origin: center center;
+  animation: comet 10s linear infinite;
+}
+
+@keyframes comet {
+  0%, 40% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  60%, 100% {
+    transform: translateX(-100vmax);
+    opacity: 0;
+  }
+}
+
+.comet-b {
+  animation-delay: -3.3s;
+}
+
+.comet-c {
+  animation-delay: -5s;
 }

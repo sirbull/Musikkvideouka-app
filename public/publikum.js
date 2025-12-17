@@ -196,39 +196,79 @@ function visKonfetti() {
 
 // === Vinner-overlay: vis overlay når admin trykker på vinner-knappen ===
 socket.on('vis-vinner-overlay', (topp3) => {
-    if (!Array.isArray(topp3) || topp3.length === 0) return;
+    console.log('🏆 Mottatt vis-vinner-overlay event:', topp3);
+    if (!Array.isArray(topp3) || topp3.length === 0) {
+        console.warn('⚠️ topp3 er tom eller ugyldig');
+        return;
+    }
     const overlayBg = document.getElementById('vinner-overlay-bg');
     const overlay = document.getElementById('vinner-overlay');
     const fireworksDiv = overlay.querySelector('.vinner-fireworks');
     const mainbox = overlay.querySelector('.vinner-mainbox');
     const topp3box = overlay.querySelector('.vinner-topp3');
 
+    console.log('✅ Viser overlay...');
+    
+    // Generer stjerner
+    const starsSvgs = overlay.querySelectorAll('.stars');
+    starsSvgs.forEach(svg => {
+        svg.innerHTML = '';
+        for (let i = 0; i < 200; i++) {
+            const cx = Math.round(Math.random() * 10000) / 100 + '%';
+            const cy = Math.round(Math.random() * 10000) / 100 + '%';
+            const r = Math.round((Math.random() + 0.5) * 10) / 10;
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.classList.add('star');
+            circle.setAttribute('cx', cx);
+            circle.setAttribute('cy', cy);
+            circle.setAttribute('r', r);
+            svg.appendChild(circle);
+        }
+    });
+    
     // Fade ut resten av siden
     overlayBg.style.display = 'block';
     overlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 
     // Fyrverkeri: restart animasjon
-    if (typeof window.Stage === 'function') {
-        // Fjerner gamle canvas hvis de finnes
-        fireworksDiv.innerHTML = '';
-        // Kopier innhold fra fireworks.html (canvasene)
-        const trails = document.createElement('canvas');
-        trails.id = 'trails-canvas';
-        const main = document.createElement('canvas');
-        main.id = 'main-canvas';
-        fireworksDiv.appendChild(trails);
-        fireworksDiv.appendChild(main);
-        // Initier fireworks.js på nytt
-        if (window.init) window.init();
+    fireworksDiv.innerHTML = '';
+    const canvas = document.createElement('canvas');
+    canvas.id = 'fireworks-canvas';
+    canvas.style.position = 'absolute';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    
+    fireworksDiv.appendChild(canvas);
+    
+    // Start fyrverkeri
+    try {
+        if (window.SimpleFireworks) {
+            const fireworks = new window.SimpleFireworks('fireworks-canvas');
+            fireworks.start();
+            console.log('🎆 Fyrverkeri startet');
+            
+            // Stopp fyrverkeri når overlay lukkes
+            const originalClose = closeOverlay;
+            closeOverlay = function() {
+                fireworks.stop();
+                originalClose();
+            };
+        }
+    } catch (e) {
+        console.warn('⚠️ Kunne ikke starte fyrverkeri:', e);
     }
 
     // Vinnerboks
     const vinner = topp3[0];
     mainbox.innerHTML = `
       <div class="vinner-bildebox"><img src="${vinner.bildeUrl || ''}" alt="${vinner.navn}"></div>
-      <div class="vinner-navnbox">${vinner.navn}</div>
-      <div class="vinner-poengbox">${vinner.poeng}</div>
+      <div class="vinner-info">
+        <div class="vinner-navnbox">${vinner.navn}</div>
+        <div class="vinner-poengbox">${vinner.poeng} poeng</div>
+      </div>
     `;
 
     // Andre- og tredjeplass
@@ -238,7 +278,7 @@ socket.on('vis-vinner-overlay', (topp3) => {
         <div class="plassbox solv">
           <img src="${topp3[1].bildeUrl || ''}" alt="${topp3[1].navn}">
           <span>${topp3[1].navn}</span>
-          <span style="margin-left:auto;font-weight:bold;">${topp3[1].poeng}</span>
+          <span style="margin-left:auto;font-weight:bold;">${topp3[1].poeng} poeng</span>
         </div>
       `;
     }
@@ -247,13 +287,14 @@ socket.on('vis-vinner-overlay', (topp3) => {
         <div class="plassbox bronse">
           <img src="${topp3[2].bildeUrl || ''}" alt="${topp3[2].navn}">
           <span>${topp3[2].navn}</span>
-          <span style="margin-left:auto;font-weight:bold;">${topp3[2].poeng}</span>
+          <span style="margin-left:auto;font-weight:bold;">${topp3[2].poeng} poeng</span>
         </div>
       `;
     }
 
     // Lukk overlay på klikk eller ESC
     function closeOverlay() {
+      console.log('🚪 Lukker overlay');
       overlayBg.style.display = 'none';
       overlay.style.display = 'none';
       document.body.style.overflow = '';
