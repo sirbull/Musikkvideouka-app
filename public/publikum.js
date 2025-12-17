@@ -30,10 +30,10 @@ function oppdaterGrupper(grupper) {
     root.style.setProperty('--container-padding', `${1.2 * scale}rem`);
     root.style.setProperty('--kolonne-gap', `${0.35 * scale}rem`);
     root.style.setProperty('--gruppe-gap', `${0.7 * scale}rem`);
-    root.style.setProperty('--gruppe-padding', `${0.28 * scale}rem ${0.7 * scale}rem`);
+    root.style.setProperty('--gruppe-padding', `${0.7 * scale}rem ${0.7 * scale}rem`);
     root.style.setProperty('--gruppe-min-height', `${48 * scale}px`);
     root.style.setProperty('--bilde-size', `${60 * scale}px`);
-    root.style.setProperty('--navn-font-size', `${1.5 * scale}rem`);
+    root.style.setProperty('--navn-font-size', `${1.0 * scale}rem`);
     root.style.setProperty('--poeng-font-size', `${1.3 * scale}rem`);
     root.style.setProperty('--vinner-min-height', `${85 * scale}px`);
     root.style.setProperty('--vinner-padding', `${0.8 * scale}rem ${1.3 * scale}rem`);

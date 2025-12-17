@@ -5,8 +5,8 @@ body {
 h1 {
   text-align: center;
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 24px;
-  margin: 10px 0;
+  font-size: 20px;
+  margin: 8px 0;
 }
 
 .uploader {
@@ -40,7 +40,7 @@ h1 {
 .group-row input {
   flex: 1;
   min-width: 0;
-  font-size: 18px;
+  font-size: 15px;
   padding: 4px 8px;
   border-radius: 6px;
   border: 1px solid #ddd;
@@ -49,12 +49,12 @@ h1 {
 
 /* Poengsummen vises til høyre og er fet og stor */
 .points-display {
-  font-size: 18px;
+  font-size: 15px;
   font-family: Arial, Helvetica, sans-serif;
   font-weight: bold;
   text-align: right;
   flex-shrink: 0;
-  min-width: 60px;
+  min-width: 50px;
   margin-right: 8px;
 }
 
@@ -67,8 +67,8 @@ h1 {
 }
 
 button {
-  padding: 6px 12px; /* Redusert padding for mindre knapper */
-  font-size: 14px;
+  padding: 5px 10px; /* Redusert padding for mindre knapper */
+  font-size: 13px;
   color: white;
   border: none;
   border-radius: 5px;
@@ -113,9 +113,9 @@ button {
 
 /* Ny gruppe-knapp */
 #add-group-button {
-  width: 250px;
-  height: 36px;
-  font-size: 14px;
+  width: 200px;
+  height: 32px;
+  font-size: 13px;
   margin-bottom: 8px;
   background-color: #d07900;
 }
@@ -126,9 +126,9 @@ button {
 
 /* Last ned-knapp */
 #download-button {
-  width: 250px;
-  height: 36px;
-  font-size: 14px;
+  width: 200px;
+  height: 32px;
+  font-size: 13px;
   margin-bottom: 8px;
   background-color: #107c41;
 }

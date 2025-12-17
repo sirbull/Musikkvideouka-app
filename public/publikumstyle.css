@@ -56,13 +56,13 @@ body {
 }
 
 .gruppe-navn {
-  font-size: var(--navn-font-size, 1.5rem);
+  font-size: var(--navn-font-size, 1.0rem);
   font-weight: 600;
   line-height: 1.2;
 }
 
 .gruppe-poeng {
-  font-size: var(--poeng-font-size, 1.3rem);
+  font-size: var(--poeng-font-size, 1.0rem);
   font-weight: bold;
   opacity: 1;
   margin-left: auto;
