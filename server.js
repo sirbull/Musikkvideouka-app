@@ -8,7 +8,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-const excelFile = path.join(__dirname, 'MAL_Musikkvideouka.xlsx');
+const excelFile = path.join(__dirname, 'MUSIKKVIDEOUKA2025.xlsx');
 // === Åpne Excel-fil automatisk ved oppstart (dummy-løsning) ===
 const { exec } = require('child_process');
 const { platform } = require('os');

@@ -33,8 +33,8 @@ function oppdaterGrupper(grupper) {
     root.style.setProperty('--gruppe-padding', `${0.28 * scale}rem ${0.7 * scale}rem`);
     root.style.setProperty('--gruppe-min-height', `${48 * scale}px`);
     root.style.setProperty('--bilde-size', `${60 * scale}px`);
-    root.style.setProperty('--navn-font-size', `${1.1 * scale}rem`);
-    root.style.setProperty('--poeng-font-size', `${0.95 * scale}rem`);
+    root.style.setProperty('--navn-font-size', `${1.5 * scale}rem`);
+    root.style.setProperty('--poeng-font-size', `${1.3 * scale}rem`);
     root.style.setProperty('--vinner-min-height', `${85 * scale}px`);
     root.style.setProperty('--vinner-padding', `${0.8 * scale}rem ${1.3 * scale}rem`);
     root.style.setProperty('--vinner-bilde-size', `${70 * scale}px`);
@@ -78,11 +78,12 @@ function oppdaterGrupper(grupper) {
         const div = document.createElement('div');
         div.className = 'gruppe';
         div.dataset.id = gruppe.navn;
-        if (plassering === 1) {
+        // Kun legg til vinner-stil hvis det er førsteplass OG gruppen har minst 10 poeng
+        if (plassering === 1 && gruppe.poeng >= 10) {
             div.classList.add('vinner'); // ekstra stil for førsteplass
-        } else if (plassering === 2) {
+        } else if (plassering === 2 && gruppe.poeng >= 10) {
             div.classList.add('solv'); // sølv glow for andreplassen
-        } else if (plassering === 3) {
+        } else if (plassering === 3 && gruppe.poeng >= 10) {
             div.classList.add('bronse'); // bronse glow for tredjeplassen
         }
 
@@ -100,7 +101,7 @@ function oppdaterGrupper(grupper) {
 
         const poeng = document.createElement('div');
         poeng.className = 'gruppe-poeng';
-        poeng.textContent = `${gruppe.poeng} poeng`;
+        poeng.textContent = `${gruppe.poeng}`;
 
         div.appendChild(bilde);
         div.appendChild(navn);
