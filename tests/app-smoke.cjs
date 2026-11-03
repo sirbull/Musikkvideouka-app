@@ -1,0 +1,767 @@
+// Integration tests run the real Electron app with hidden test windows and isolated data.
+// No desktop input injection, network service or debug port is used.
+const { app, BrowserWindow, dialog, Menu } = require("electron");
+const assert = require("node:assert/strict");
+const fs = require("node:fs/promises");
+const path = require("node:path");
+const { Project } = require("../desktop/project.cjs");
+const { readSheet } = require("read-excel-file/node");
+const output = path.resolve(__dirname, "..", "test-results");
+const userData =
+  process.env.MVUKA_SMOKE_RESUME || path.join(output, `smoke-${Date.now()}`);
+app.setPath("userData", userData);
+BrowserWindow.prototype.show = function () {};
+const windows = [];
+const errors = [];
+app.on("browser-window-created", (_event, win) => {
+  windows.push(win);
+  win.webContents.on("render-process-gone", (_event, details) =>
+    errors.push(details.reason),
+  );
+});
+let selectedFile = null,
+  saveDestination = null;
+dialog.showOpenDialog = async () =>
+  selectedFile
+    ? { canceled: false, filePaths: [selectedFile] }
+    : { canceled: true, filePaths: [] };
+dialog.showSaveDialog = async () =>
+  saveDestination
+    ? { canceled: false, filePath: saveDestination }
+    : { canceled: true };
+dialog.showMessageBox = async () => ({ response: 0 });
+dialog.showErrorBox = (title, message) => {
+  errors.push(`${title}: ${message}`);
+};
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const js = (win, code) => win.webContents.executeJavaScript(code);
+async function until(condition, label, timeout = 15000) {
+  const started = Date.now();
+  while (Date.now() - started < timeout) {
+    try {
+      if (await condition()) return;
+    } catch {}
+    await delay(60);
+  }
+  throw new Error(`Timed out: ${label}`);
+}
+const get = (win) => js(win, "window.musikk.getState()");
+const command = (win, action, payload) =>
+  js(
+    win,
+    `window.musikk.command(${JSON.stringify(action)}, ${JSON.stringify(payload)})`,
+  );
+async function screenshot(win, filename) {
+  // A first capture wakes Chromium's hidden surface. Wait for two paint frames
+  // before the final capture, so screenshots match the asserted DOM state.
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await win.webContents.capturePage(undefined, {
+        stayHidden: true,
+        stayAwake: true,
+      });
+      break;
+    } catch (error) {
+      if (attempt >= 3) throw error;
+      await delay(300);
+    }
+  }
+  await js(
+    win,
+    "new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))",
+  );
+  await fs.writeFile(
+    path.join(output, filename),
+    (
+      await win.webContents.capturePage(undefined, {
+        stayHidden: true,
+        stayAwake: true,
+      })
+    ).toPNG(),
+  );
+}
+const checks = [];
+function check(name) {
+  checks.push(name);
+  console.log(`PASS ${name}`);
+}
+
+async function run() {
+  await fs.mkdir(output, { recursive: true });
+  await until(
+    () =>
+      windows[0] &&
+      get(windows[0]).then((s) => !!(s.savedAt || s.saveError) && !s.saving),
+    "initial load",
+  );
+  const control = windows[0];
+  if (process.env.MVUKA_SMOKE_RESUME) {
+    const state = await get(control);
+    assert.equal(state.document.groups.length, 48);
+    assert.ok(state.document.groups.at(11).imageUrl);
+    assert.equal(state.canRedo, true);
+    assert.ok(
+      state.saveError,
+      "a blocked original file must leave the recovered app usable",
+    );
+    await fs.rmdir(`${state.projectPath}.bak`);
+    await command(control, "save");
+    assert.equal((await get(control)).saveError, null);
+    await command(control, "redo");
+    assert.equal((await get(control)).document.groups.length, 17);
+    await command(control, "undo");
+    assert.equal((await get(control)).document.groups.length, 48);
+    console.log(
+      "PASS restart recovers the last session, image and redo even when the original file cannot be written",
+    );
+    app.exit(0);
+    return;
+  }
+  assert.equal((await get(control)).document.groups.length, 5);
+  await until(
+    () => js(control, "document.querySelectorAll('.group-row').length === 5"),
+    "five blank rows",
+  );
+  assert.equal(
+    await js(
+      control,
+      "[...document.querySelectorAll('.group-name')].every(input => input.value === '') && document.querySelectorAll('.avatar-content svg').length === 5 && !document.querySelector('.sidebar')",
+    ),
+    true,
+  );
+  assert.equal(control.isMenuBarVisible(), true);
+  const fileMenu = Menu.getApplicationMenu().items.find(
+    (item) => item.label === "File",
+  );
+  assert.ok(fileMenu);
+  const templateMenu = fileMenu.submenu.items.find(
+    (item) => item.label === "Last ned Excel-mal",
+  );
+  assert.ok(templateMenu);
+  const beforeTemplate = await get(control);
+  saveDestination = path.join(userData, "downloaded-template.xlsx");
+  templateMenu.click();
+  await until(
+    () => fs.stat(saveDestination).then((stat) => stat.size > 0),
+    "Excel template saved from File menu",
+  );
+  const templateRows = await readSheet(saveDestination, 1);
+  assert.deepEqual(templateRows[0].slice(0, 3), ["Navn", "Bilde", "Poeng"]);
+  assert.ok(templateRows.slice(1, 6).every((row) => row[0] === null && row[1] === null && row[2] === 0));
+  saveDestination = null;
+  await command(control, "download-excel-template");
+  const afterTemplate = await get(control);
+  assert.deepEqual(afterTemplate.document, beforeTemplate.document);
+  assert.equal(afterTemplate.projectPath, beforeTemplate.projectPath);
+  assert.equal(afterTemplate.canUndo, beforeTemplate.canUndo);
+  check("File menu downloads a valid Excel template; saving and canceling preserve the project");
+  const oldId = (await get(control)).document.id;
+  fileMenu.submenu.items[0].click();
+  await until(
+    () => js(control, "document.querySelector('#new-project-dialog').open"),
+    "new project dialog",
+  );
+  await js(
+    control,
+    "document.querySelector('#new-project-name').value = ' '; document.querySelector('#new-project-form').dispatchEvent(new Event('submit', {bubbles:true,cancelable:true}))",
+  );
+  assert.equal((await get(control)).document.id, oldId);
+  await js(
+    control,
+    "document.querySelector('#new-project-name').value = 'Musikkvideouka 2026'; document.querySelector('#new-project-form').dispatchEvent(new Event('submit', {bubbles:true,cancelable:true}))",
+  );
+  await until(
+    async () => (await get(control)).document.id !== oldId,
+    "named new project",
+  );
+  assert.equal((await get(control)).document.title, "Musikkvideouka 2026");
+  assert.equal((await get(control)).document.groups.length, 5);
+  await until(
+    () => js(control, "!document.querySelector('#new-project-dialog').open"),
+    "new dialog closed",
+  );
+  check("five blank groups, visible File menu and required new-project name");
+  await delay(500);
+  await screenshot(control, "control-empty.png");
+  const starterId = (await get(control)).document.groups[0].id;
+  await js(
+    control,
+    "const field=document.querySelector('.group-name'); field.value='Testgruppe'; field.dispatchEvent(new Event('input', {bubbles:true}));",
+  );
+  await until(
+    async () => (await get(control)).document.groups[0].name === "Testgruppe",
+    "name autosave",
+  );
+  await js(
+    control,
+    "const score=document.querySelector('.points-input'); score.focus(); score.value='1'; score.dispatchEvent(new Event('input', {bubbles:true})); score.value='12'; score.dispatchEvent(new Event('input', {bubbles:true})); score.blur(); score.dispatchEvent(new FocusEvent('blur'));",
+  );
+  await until(
+    async () =>
+      (await get(control)).document.groups[0].points === 12 &&
+      (await js(
+        control,
+        "!document.querySelector('.points-input').hasAttribute('aria-busy')",
+      )),
+    "direct score autosave",
+  );
+  await command(control, "undo");
+  assert.equal((await get(control)).document.groups[0].points, 0);
+  await command(control, "redo");
+  assert.equal((await get(control)).document.groups[0].points, 12);
+  const typeScore = (expression) =>
+    js(
+      control,
+      `{ const scoreField=document.querySelector('.points-input'); scoreField.focus(); scoreField.value=${JSON.stringify(expression)}; scoreField.dispatchEvent(new Event('input',{bubbles:true})); }`,
+    );
+  const enterScore = async (expression, expected) => {
+    await typeScore(expression);
+    await js(
+      control,
+      "document.querySelector('.points-input').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}))",
+    );
+    await until(
+      async () =>
+        (await get(control)).document.groups[0].points === expected &&
+        (await js(
+          control,
+          `document.querySelector('.points-input').value === '${expected}' && !document.querySelector('.points-input').hasAttribute('aria-busy')`,
+        )),
+      `calculate ${expression}`,
+    );
+  };
+  await typeScore("23");
+  assert.equal(
+    (await get(control)).document.groups[0].points,
+    12,
+    "draft numbers are not published before confirmation",
+  );
+  await enterScore("23", 23);
+  await enterScore("23-5", 18);
+  await enterScore("+1", 19);
+  await js(
+    control,
+    "document.querySelector('.points-input').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}))",
+  );
+  assert.equal(
+    (await get(control)).document.groups[0].points,
+    19,
+    "Enter and blur never apply +1 twice",
+  );
+  await enterScore("-5", 14);
+  await typeScore("23-");
+  await js(
+    control,
+    "document.querySelector('.points-input').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}))",
+  );
+  await until(
+    () =>
+      js(
+        control,
+        "document.querySelector('.points-input').getAttribute('aria-invalid') === 'true' && !document.querySelector('.points-input').readOnly",
+      ),
+    "invalid expression feedback",
+  );
+  assert.equal((await get(control)).document.groups[0].points, 14);
+  assert.equal(
+    await js(control, "window.prepareProjectChange()"),
+    false,
+    "invalid drafts cannot silently be lost by Save or Close",
+  );
+  await js(
+    control,
+    "document.querySelector('.points-input').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}))",
+  );
+  assert.equal(
+    await js(control, "document.querySelector('.points-input').value"),
+    "14",
+  );
+  await typeScore("+2");
+  // Hidden test windows do not always synthesize native focus events.
+  await js(
+    control,
+    "document.querySelector('.points-input').blur(); document.querySelector('.points-input').dispatchEvent(new FocusEvent('blur'))",
+  );
+  await until(
+    async () =>
+      (await get(control)).document.groups[0].points === 16 &&
+      (await js(
+        control,
+        "!document.querySelector('.points-input').hasAttribute('aria-busy')",
+      )),
+    "calculate on blur",
+  );
+  await typeScore("+1");
+  assert.equal(await js(control, "window.prepareProjectChange()"), true);
+  assert.equal(
+    (await get(control)).document.groups[0].points,
+    17,
+    "pending arithmetic is flushed before Save or Close",
+  );
+  check(
+    "arithmetic fields confirm once, reject invalid expressions and flush before saving",
+  );
+  while ((await get(control)).document.groups[0].points !== 0)
+    await command(control, "undo");
+  await command(control, "undo");
+  assert.equal((await get(control)).document.groups[0].name, "");
+  check("direct name and score inputs autosave and undo as field edits");
+  await command(control, "demo");
+  let state = await get(control);
+  assert.equal(state.document.groups.length, 12);
+  await until(
+    () => js(control, "document.querySelectorAll('.group-row').length === 12"),
+    "group rows",
+  );
+  const documentBeforeResize = (await get(control)).document;
+  const widthBefore = await js(
+    control,
+    "document.querySelector('#groups-panel').getBoundingClientRect().width",
+  );
+  const previewBefore = await js(
+    control,
+    "document.querySelector('#presentation-panel').getBoundingClientRect().width",
+  );
+  await js(
+    control,
+    "document.querySelector('#panel-divider').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}))",
+  );
+  assert.ok(
+    await js(
+      control,
+      `document.querySelector('#groups-panel').getBoundingClientRect().width > ${widthBefore} && document.querySelector('#presentation-panel').getBoundingClientRect().width < ${previewBefore}`,
+    ),
+  );
+  const beforeDrag = await js(
+    control,
+    "document.querySelector('#groups-panel').getBoundingClientRect().width",
+  );
+  await js(
+    control,
+    "const split=document.querySelector('#panel-divider'); const rect=split.getBoundingClientRect(); const x=rect.left+rect.width/2; const y=rect.top+30; split.dispatchEvent(new PointerEvent('pointerdown',{pointerId:23,button:0,clientX:x,clientY:y,bubbles:true})); split.dispatchEvent(new PointerEvent('pointermove',{pointerId:23,clientX:x-90,clientY:y,bubbles:true})); split.dispatchEvent(new PointerEvent('pointerup',{pointerId:23,button:0,clientX:x-90,clientY:y,bubbles:true}));",
+  );
+  const draggedWidth = await js(
+    control,
+    "document.querySelector('#groups-panel').getBoundingClientRect().width",
+  );
+  assert.ok(Math.abs(beforeDrag - draggedWidth - 90) < 2);
+  assert.equal(
+    await js(control, "document.body.classList.contains('resizing-panels')"),
+    false,
+  );
+  assert.deepEqual((await get(control)).document, documentBeforeResize);
+  control.webContents.reload();
+  await until(
+    () =>
+      js(
+        control,
+        "document.querySelectorAll('.group-row').length === 12 && !!document.querySelector('#panel-divider').getAttribute('aria-valuetext')",
+      ),
+    "restore split after reload",
+  );
+  assert.ok(
+    Math.abs(
+      (await js(
+        control,
+        "document.querySelector('#groups-panel').getBoundingClientRect().width",
+      )) - draggedWidth,
+    ) < 2,
+  );
+  await js(
+    control,
+    "document.querySelector('#panel-divider').dispatchEvent(new KeyboardEvent('keydown',{key:'Home',bubbles:true}))",
+  );
+  assert.ok(
+    await js(
+      control,
+      "document.querySelector('#groups-panel').getBoundingClientRect().width >= 360 && document.querySelector('#groups').scrollWidth <= document.querySelector('#groups').clientWidth",
+    ),
+  );
+  await js(
+    control,
+    "document.querySelector('#panel-divider').dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true}))",
+  );
+  assert.ok(
+    await js(
+      control,
+      "document.querySelector('#presentation-panel').getBoundingClientRect().width >= 280 && document.documentElement.scrollWidth <= innerWidth",
+    ),
+  );
+  await screenshot(control, "control-wide-list.png");
+  await js(
+    control,
+    "document.querySelector('#panel-divider').dispatchEvent(new MouseEvent('dblclick',{bubbles:true}))",
+  );
+  assert.ok(
+    Math.abs(
+      (await js(
+        control,
+        "document.querySelector('#groups-panel').getBoundingClientRect().width",
+      )) - widthBefore,
+    ) < 2,
+  );
+  assert.ok(
+    await js(
+      control,
+      "[...document.querySelectorAll('.group-row')].every(row=>row.offsetHeight <= 42)",
+    ),
+  );
+  check(
+    "compact rows and draggable split resize both panes, persist and respect minimum widths",
+  );
+  const group = state.document.groups.at(-1);
+  saveDestination = path.join(output, "smoke-project.mvuka");
+  await command(control, "save");
+  const selectedImage = path.resolve(
+    __dirname,
+    "..",
+    "dummy_album_covers",
+    "artist_1.png",
+  );
+  selectedFile = selectedImage;
+  await command(control, "image", { id: group.id });
+  state = await get(control);
+  assert.match(
+    state.document.groups.at(-1).imageUrl,
+    /^data:image\/png;base64,/,
+  );
+  const file = Project.decode(await fs.readFile(saveDestination));
+  assert.ok(file.document.groups.at(-1).image);
+  assert.ok(Object.keys(file.assets).length);
+  check("save-as and embedded image persist in portable project");
+
+  const before = group.points;
+  await Promise.all(
+    Array.from({ length: 8 }, () =>
+      command(control, "points", { id: group.id, delta: 12 }),
+    ),
+  );
+  state = await get(control);
+  assert.equal(state.document.groups.at(-1).points, before + 96);
+  assert.equal(
+    Project.decode(await fs.readFile(saveDestination)).document.groups.at(-1)
+      .points,
+    before + 96,
+  );
+  check("queued concurrent scores autosave without lost updates");
+
+  // Keyboard events are dispatched within the renderer to verify app shortcut routing.
+  await js(
+    control,
+    "document.activeElement.blur(); document.body.dispatchEvent(new KeyboardEvent('keydown', {key:'z',ctrlKey:true,bubbles:true}))",
+  );
+  await until(
+    async () =>
+      (await get(control)).document.groups.at(-1).points === before + 84,
+    "Ctrl+Z",
+  );
+  await js(
+    control,
+    "document.body.dispatchEvent(new KeyboardEvent('keydown', {key:'y',ctrlKey:true,bubbles:true}))",
+  );
+  await until(
+    async () =>
+      (await get(control)).document.groups.at(-1).points === before + 96,
+    "Ctrl+Y",
+  );
+  check("Ctrl+Z and Ctrl+Y route to project undo/redo");
+  await command(control, "undo");
+  selectedFile = saveDestination;
+  await command(control, "open");
+  assert.equal((await get(control)).canRedo, true);
+  await command(control, "redo");
+  assert.equal((await get(control)).document.groups.at(-1).points, before + 96);
+  assert.ok((await get(control)).document.groups.at(-1).imageUrl);
+  check("reopening restores images and persistent redo history");
+
+  state = await get(control);
+  await command(control, "start-presentation", {
+    displayId: state.displays[0].id,
+  });
+  await until(
+    () =>
+      windows.length > 1 &&
+      js(windows[1], "document.querySelectorAll('.stage-row').length === 12"),
+    "audience load",
+  );
+  const audience = windows[1];
+  const fullWidthRows = await js(
+    audience,
+    "[...document.querySelectorAll('.stage-row')].every(row => row.offsetLeft === 0 && Math.abs(row.offsetWidth - document.querySelector('#board').clientWidth) <= 1)",
+  );
+  assert.equal(
+    fullWidthRows,
+    true,
+    "audience rows use the entire available width",
+  );
+  const medalStyles = await js(
+    audience,
+    "['gold','silver','bronze'].map(medal => { const row=document.querySelector('[data-medal=\"'+medal+'\"]'); const frame=getComputedStyle(row,'::before'); return {medal,height:row.offsetHeight,gradient:frame.backgroundImage,mask:frame.maskComposite,animation:frame.animationName}; })",
+  );
+  assert.ok(medalStyles[0].height > medalStyles[1].height);
+  assert.equal(medalStyles[1].height, medalStyles[2].height);
+  assert.equal(new Set(medalStyles.map((s) => s.gradient)).size, 3);
+  assert.ok(
+    medalStyles.every(
+      (s) =>
+        s.gradient.includes("linear-gradient") &&
+        s.mask.split(",").every((value) => value.trim() === "exclude") &&
+        s.animation === "metal-shimmer",
+    ),
+    JSON.stringify(medalStyles),
+  );
+  const shineBefore = await js(
+    audience,
+    "getComputedStyle(document.querySelector('[data-medal=gold]'),'::before').backgroundPosition",
+  );
+  await delay(250);
+  const shineAfter = await js(
+    audience,
+    "getComputedStyle(document.querySelector('[data-medal=gold]'),'::before').backgroundPosition",
+  );
+  assert.notEqual(
+    shineAfter,
+    shineBefore,
+    "metal stroke actually changes over time",
+  );
+  check(
+    "full-width rows, larger leader and three distinct animated metallic strokes",
+  );
+  assert.equal(
+    await js(audience, "document.querySelector('#stage-title').textContent"),
+    "Musikkvideouka 2026",
+  );
+  assert.equal(
+    await js(
+      audience,
+      "document.querySelectorAll('.stage-brand,.stage-intro,.stage-footer').length",
+    ),
+    0,
+  );
+  assert.equal(
+    await js(
+      audience,
+      "document.querySelector('#stage').getAnimations().some(animation => animation.effect.getTiming().iterations === Infinity)",
+    ),
+    true,
+  );
+  const titleSize = await js(
+    audience,
+    "parseFloat(getComputedStyle(document.querySelector('#stage-title')).fontSize)",
+  );
+  assert.ok(titleSize <= 28);
+  await assert.rejects(
+    command(audience, "points", { id: group.id, delta: 100 }),
+    /Ingen tilgang/,
+  );
+  await until(
+    () =>
+      js(
+        audience,
+        "[...document.querySelectorAll('.stage-row')].find(r=>r.classList.contains('leader')).querySelector('.stage-name').textContent === 'På repeat'",
+      ),
+    "initial audience rank",
+  );
+  check("audience window renders ranked data and cannot mutate project");
+
+  const runner = state.document.groups[1];
+  await command(control, "points", { id: runner.id, delta: 200 });
+  await until(
+    () =>
+      js(
+        audience,
+        `document.querySelector('[data-id="${runner.id}"] .stage-points').textContent === '${runner.points + 200}'`,
+      ),
+    "new points",
+  );
+  const highlighted = await js(
+    audience,
+    `document.querySelector('[data-id="${runner.id}"] .stage-points').getAnimations().length > 0`,
+  );
+  assert.equal(highlighted, true);
+  await until(
+    () =>
+      js(
+        audience,
+        `document.querySelector('.leader').dataset.id === '${runner.id}' && document.querySelector('.leader').getAnimations().every(animation => !animation.effect.getKeyframes().some(frame => frame.transform))`,
+      ),
+    "animated rank change",
+  );
+  assert.equal(
+    await js(
+      audience,
+      `document.querySelector('[data-id="${runner.id}"]').offsetTop`,
+    ),
+    0,
+  );
+  check("score pulse finishes before animated rank change");
+  assert.equal(
+    await js(
+      audience,
+      `document.querySelector('[data-medal=gold]').dataset.id === '${runner.id}' && document.querySelector('[data-medal=silver]').dataset.id === '${group.id}' && document.querySelector('[data-medal=bronze]').dataset.id === '${state.document.groups[0].id}'`,
+    ),
+    true,
+  );
+  await command(control, "presentation-mode", { mode: "pause" });
+  await until(
+    () => js(audience, "!document.querySelector('#pause-overlay').hidden"),
+    "pause",
+  );
+  await command(control, "presentation-mode", { mode: "black" });
+  await until(
+    () => js(audience, "!document.querySelector('#black-overlay').hidden"),
+    "black",
+  );
+  await command(control, "presentation-mode", { mode: "scoreboard" });
+  await command(control, "motion", { enabled: false });
+  await until(
+    () =>
+      js(
+        audience,
+        "document.querySelector('#stage').classList.contains('no-motion')",
+      ),
+    "reduced motion",
+  );
+  check("pause, black screen and motion setting propagate");
+  assert.equal(
+    await js(
+      audience,
+      "getComputedStyle(document.querySelector('[data-medal=gold]'),'::before').animationName",
+    ),
+    "none",
+  );
+  const names = state.document.groups.map((g) => ({ id: g.id, name: g.name }));
+  for (const item of names.slice(1))
+    await command(control, "rename-group", { id: item.id, name: "" });
+  await until(
+    () => js(audience, "document.querySelectorAll('.stage-row').length === 1"),
+    "single group layout",
+  );
+  assert.equal(
+    await js(
+      audience,
+      "Math.abs(document.querySelector('.stage-row').offsetWidth - document.querySelector('#board').clientWidth) <= 1",
+    ),
+    true,
+  );
+  await screenshot(audience, "audience-one-group.png");
+  for (const item of names.slice(1, 3))
+    await command(control, "rename-group", item);
+  await command(control, "motion", { enabled: true });
+  await until(
+    () => js(audience, "document.querySelectorAll('.stage-row').length === 3"),
+    "three group layout",
+  );
+  await screenshot(audience, "audience-medals.png");
+  await command(control, "motion", { enabled: false });
+  for (const item of names.slice(3))
+    await command(control, "rename-group", item);
+  await until(
+    () => js(audience, "document.querySelectorAll('.stage-row').length === 12"),
+    "restore named groups",
+  );
+  check(
+    "single-group screenshot fills width and podium styles follow ranked rows",
+  );
+  // Turning motion off also flushes any preview backlog from the rapid score test.
+  await command(control, "motion", { enabled: true });
+  await delay(600);
+  await screenshot(control, "control-panel.png");
+  await screenshot(audience, "audience.png");
+  // Test a smaller supported control window and maximum audience density.
+  control.setSize(1100, 760);
+  await delay(250);
+  const overflow = await js(
+    control,
+    "document.documentElement.scrollWidth > innerWidth",
+  );
+  assert.equal(overflow, false, "control panel must fit minimum window width");
+  const visibleGroups = await js(
+    control,
+    "[...document.querySelectorAll('.group-row')].filter(row => row.getBoundingClientRect().bottom <= document.querySelector('#groups').getBoundingClientRect().bottom + 1).length",
+  );
+  assert.ok(
+    visibleGroups >= 10,
+    `at least ten editable groups fit without scrolling (got ${visibleGroups})`,
+  );
+  await screenshot(control, "control-compact.png");
+  control.setSize(1500, 980);
+  await command(control, "motion", { enabled: false });
+  for (let i = 12; i < 48; i++)
+    await command(control, "add-group", { name: `Gruppe ${i + 1}` });
+  await until(
+    () => js(audience, "document.querySelectorAll('.stage-row').length === 48"),
+    "48 groups",
+  );
+  const fits = await js(
+    audience,
+    "[...document.querySelectorAll('.stage-row')].every(r => r.offsetTop >= 0 && r.offsetTop + r.offsetHeight <= document.querySelector('#board').clientHeight + 1 && r.offsetLeft + r.offsetWidth <= document.querySelector('#board').clientWidth + 1)",
+  );
+  assert.equal(fits, true);
+  await delay(600);
+  await screenshot(audience, "audience-48-groups.png");
+  check("minimum control size and 48-group audience layout fit");
+  // Re-import the existing spreadsheet: it has remote images, which must be reported, never fetched.
+  selectedFile = path.resolve(__dirname, "..", "Musikkvideouka.xlsx");
+  await command(control, "import");
+  assert.equal((await get(control)).document.groups.length, 17);
+  await command(control, "undo");
+  assert.equal((await get(control)).document.groups.length, 48);
+  check("existing Excel imports and can be undone");
+  // A backup path occupied by a directory causes the next atomic write to fail.
+  // The previous project must survive, recovery must contain the latest change,
+  // and a subsequent save to a working location must clear the visible error.
+  const backupPath = `${saveDestination}.bak`;
+  await fs.rm(backupPath, { force: true });
+  await fs.mkdir(backupPath);
+  const savedBeforeFailure = await fs.readFile(saveDestination);
+  await assert.rejects(command(control, "points", { id: group.id, delta: 1 }));
+  assert.ok((await get(control)).saveError);
+  assert.deepEqual(await fs.readFile(saveDestination), savedBeforeFailure);
+  assert.equal(
+    Project.decode(
+      await fs.readFile(path.join(userData, "recovery.mvuka")),
+    ).document.groups.at(11).points,
+    before + 97,
+  );
+  await fs.rmdir(backupPath);
+  await command(control, "save");
+  assert.equal((await get(control)).saveError, null);
+  await command(control, "undo");
+  // Restore an import redo entry for the subsequent restart check.
+  await command(control, "import");
+  await command(control, "undo");
+  check(
+    "failed autosave preserves previous file, writes recovery and reports failure",
+  );
+  assert.deepEqual(errors, []);
+  await fs.writeFile(
+    path.join(output, "smoke-report.json"),
+    JSON.stringify({ ok: true, checks, userData }, null, 2),
+  );
+  console.log(
+    `PASS ${checks.length} app integration checks. Screenshots: test-results/`,
+  );
+  app.exit(0);
+}
+app.whenReady().then(() =>
+  run().catch(async (error) => {
+    console.error(error);
+    await fs.mkdir(output, { recursive: true });
+    await fs.writeFile(
+      path.join(output, "smoke-report.json"),
+      JSON.stringify(
+        { ok: false, checks, error: error.stack, errors },
+        null,
+        2,
+      ),
+    );
+    if (windows[0] && !windows[0].isDestroyed())
+      await fs.writeFile(
+        path.join(output, "failure.png"),
+        (await windows[0].webContents.capturePage()).toPNG(),
+      );
+    app.exit(1);
+  }),
+);
+require("../desktop/main.js");

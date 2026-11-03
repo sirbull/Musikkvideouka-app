@@ -1,41 +1,184 @@
-<!DOCTYPE html>
-<html lang="no">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Live Avstemming</title>
-  <link rel="stylesheet" href="adminstyle.css">
-</head>
-<body>
-  <div class="container">
-    <h1>ADMIN - MUSIKKVIDEOUKA</h1>
+<!doctype html>
+<html lang="nb">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; frame-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>Musikkvideouka</title>
+    <link rel="stylesheet" href="adminstyle.css" />
+  </head>
+  <body>
+    <header class="appbar">
+      <img class="app-icon" src="brand/icon.png" alt="" />
+      <details id="browser-file-menu" class="file-menu" hidden>
+        <summary>File</summary>
+        <div class="file-menu-items">
+          <button data-command="new">Nytt prosjekt …<kbd>Ctrl N</kbd></button>
+          <button data-command="open">Åpne …<kbd>Ctrl O</kbd></button>
+          <button data-command="save">Lagre<kbd>Ctrl S</kbd></button>
+          <button data-command="save-as">Lagre som …</button>
+          <hr />
+          <button data-command="import">Importer Excel …</button>
+          <button data-command="download-excel-template">Last ned Excel-mal</button>
+          <hr />
+          <button data-action="reset-points">Nullstill alle poeng …</button>
+        </div>
+      </details>
+      <label class="project-title"
+        ><span class="visually-hidden">Prosjektnavn</span
+        ><input
+          id="project-name"
+          maxlength="120"
+          placeholder="Prosjektnavn"
+          aria-label="Prosjektnavn"
+          autocomplete="off"
+      /></label>
+      <span id="save-status" class="save-status" role="status"></span>
+      <div class="history-controls">
+        <button
+          id="undo"
+          class="icon-button"
+          aria-label="Angre"
+          title="Angre (Ctrl+Z)"
+        >
+          <span data-icon="undo"></span>
+        </button>
+        <button
+          id="redo"
+          class="icon-button"
+          aria-label="Gjør om"
+          title="Gjør om (Ctrl+Y)"
+        >
+          <span data-icon="redo"></span>
+        </button>
+      </div>
+    </header>
 
+    <main class="workspace">
+      <div id="save-error" class="error-banner" role="alert" hidden></div>
+      <div class="workspace-grid">
+        <section
+          id="groups-panel"
+          class="groups-panel"
+          aria-label="Grupper og poeng"
+        >
+          <div class="panel-heading">
+            <h1>Grupper</h1>
+            <button
+              id="add-group"
+              class="icon-button add-button"
+              aria-label="Legg til gruppe"
+              title="Legg til gruppe"
+            >
+              <span data-icon="plus"></span>
+            </button>
+          </div>
+          <div class="table-heading"><span>Gruppe</span><span>Poeng</span></div>
+          <div id="groups"></div>
+          <p id="empty-state" class="empty-state" hidden>
+            Ingen grupper. Bruk + for å legge til en gruppe.
+          </p>
+        </section>
 
-    <!-- Varsel om å laste opp Excel-fil -->
-    <div id="upload-warning" style="background:#ffe9e9; color:#a00; border:1.5px solid #e88; border-radius:7px; padding:0.8em 1em; margin-bottom:1.2em; font-size:1.1em; display:block; font-family:system-ui, Arial, Helvetica, sans-serif;">
-      <b>Ingen Excel-fil er lastet inn.</b> <br>
-      Vennligst last opp <span style="font-family:monospace;">Musikkvideouka.xlsx</span> eller en annen gyldig .xlsx-fil for å komme i gang.
-    </div>
+        <div
+          id="panel-divider"
+          class="panel-divider"
+          role="separator"
+          tabindex="0"
+          aria-orientation="vertical"
+          aria-label="Endre bredden på gruppelisten og forhåndsvisningen"
+          aria-controls="groups-panel presentation-panel"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="52"
+          title="Dra for å endre bredde. Dobbeltklikk for å tilbakestille."
+        ></div>
 
-    <!-- Opplasting av Excel-fil -->
-    <div class="uploader"><input type="file" id="excel-file" />
+        <aside
+          id="presentation-panel"
+          class="show-panel"
+          aria-label="Publikumsvisning"
+        >
+          <div class="panel-heading"><h2>Forhåndsvisning</h2></div>
+          <div class="preview-shell">
+            <iframe
+              id="preview"
+              src="publikum.html?preview=1"
+              title="Forhåndsvisning av publikumsskjermen"
+              tabindex="-1"
+            ></iframe>
+          </div>
+          <div class="show-controls">
+            <label for="display-select">Publikumsskjerm</label>
+            <select id="display-select"></select>
+            <p id="display-help" class="display-help"></p>
+            <button id="start-show" class="button primary">
+              <span data-icon="play"></span>Start publikumsvisning
+            </button>
+            <button id="stop-show" class="button secondary" hidden>
+              <span data-icon="stop"></span>Avslutt publikumsvisning
+            </button>
+            <div
+              id="presentation-modes"
+              class="mode-switch"
+              role="group"
+              aria-label="Vis på publikumsskjermen"
+              hidden
+            >
+              <button data-mode="scoreboard" class="selected">Poengtavle</button
+              ><button data-mode="pause">Pause</button
+              ><button data-mode="black">Svart skjerm</button>
+            </div>
+            <button id="finish-show" class="button finale-button" title="Vis vinneren med konfetti på publikumsskjermen">
+              <span data-icon="trophy"></span>Ferdig
+            </button>
+            <button id="back-to-board" class="button secondary" hidden>
+              Tilbake til poengtavlen
+            </button>
+          </div>
+        </aside>
+      </div>
+    </main>
 
-    <!-- Visning av data fra Excel -->
-    <div id="output"></div>
-
-    <!-- Wrapper for knappene -->
-    <div class="button-container">
-      <!-- Ny gruppe og Last ned knapper -->
-      <button id="add-group-button">Ny gruppe</button>
-      <button id="download-button">Last ned</button>
-    </div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="admin.js"></script>
-
-
-</body>
+    <dialog id="new-project-dialog">
+      <form id="new-project-form">
+        <h2>Nytt prosjekt</h2>
+        <label for="new-project-name">Prosjektnavn</label>
+        <input
+          id="new-project-name"
+          placeholder="For eksempel Musikkvideouka 2026"
+          maxlength="120"
+          required
+          autocomplete="off"
+        />
+        <div class="dialog-actions">
+          <button
+            id="cancel-new-project"
+            type="button"
+            class="button secondary"
+          >
+            Avbryt</button
+          ><button type="submit" class="button primary">
+            Opprett prosjekt
+          </button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="confirm-dialog">
+      <h2 id="confirm-title"></h2>
+      <p id="confirm-detail"></p>
+      <div class="dialog-actions">
+        <button class="button secondary" id="confirm-cancel">Avbryt</button
+        ><button class="button primary" id="confirm-ok">Fortsett</button>
+      </div>
+    </dialog>
+    <div id="toast" role="status" hidden></div>
+    <script src="browser-bridge.js"></script>
+    <script src="icons.js"></script>
+    <script src="panel-layout.js"></script>
+    <script src="admin.js"></script>
+  </body>
 </html>
-
