@@ -1,6 +1,7 @@
 node_modules
 .dev-data/
 release/
+release-installer/
 test-results/
 outputs/
 test-results-electron.log
