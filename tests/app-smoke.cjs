@@ -134,6 +134,11 @@ async function run() {
     (item) => item.label === "File",
   );
   assert.ok(fileMenu);
+  assert.equal(await js(control, "document.querySelector('#finish-show').disabled"), true);
+  await assert.rejects(
+    command(control, "presentation-mode", { mode: "winner" }),
+    /gruppenavn/,
+  );
   const templateMenu = fileMenu.submenu.items.find(
     (item) => item.label === "Last ned Excel-mal",
   );
@@ -602,6 +607,64 @@ async function run() {
     ),
     true,
   );
+  const beforeFinale = await get(control);
+  const originalWinnerPoints = beforeFinale.document.groups.find((g) => g.id === group.id).points;
+  const originalRunnerPoints = beforeFinale.document.groups.find((g) => g.id === runner.id).points;
+  await js(control, `{
+    const field = document.querySelector('[data-id="${group.id}"] .points-input');
+    field.focus();
+    field.value = '500+7';
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    document.querySelector('#finish-show').click();
+  }`);
+  await until(
+    () => js(audience, `!document.querySelector('#winner-overlay').hidden && document.querySelector('#winner-overlay').dataset.winnerId === '${group.id}' && document.querySelector('#winner-points').textContent === '507'`),
+    "Ferdig flushes the score expression and reveals the correct winner",
+  );
+  await until(
+    () => js(control, `document.querySelector('#preview').contentDocument.querySelector('#winner-points').textContent === '507' && !document.querySelector('#back-to-board').hidden`),
+    "winner preview matches the audience",
+  );
+  assert.equal((await get(control)).document.groups.find((g) => g.id === group.id).points, 507);
+  await until(
+    () => js(audience, "!!document.querySelector('#winner-portrait img')?.complete && document.querySelector('#winner-portrait img').naturalWidth > 0"),
+    "winner photo loaded",
+  );
+  await until(
+    () => js(audience, "document.querySelector('#confetti').getContext('2d').getImageData(0,0,1600,900).data.some((v,i) => i % 4 === 3 && v > 0)"),
+    "confetti actually paints",
+  );
+  await delay(1250);
+  await screenshot(audience, "audience-winner.png");
+  await screenshot(control, "control-winner.png");
+  await js(audience, "window.originalWinnerPhoto = document.querySelector('#winner-portrait img')");
+  await command(control, "presentation-mode", { mode: "winner" });
+  assert.equal(await js(audience, "window.originalWinnerPhoto === document.querySelector('#winner-portrait img')"), true);
+  check("Ferdig commits pending scores, reveals the winner photo and confetti, and matches the preview without replaying on broadcasts");
+
+  await command(control, "set-points", { id: runner.id, points: 507 });
+  await until(
+    () => js(audience, "document.querySelector('#winner-label').textContent === 'Delt førsteplass' && document.querySelector('#winner-counter').textContent === '1 av 2' && !!document.querySelector('#winner-portrait svg')"),
+    "tied winners and missing photo fallback",
+  );
+  await until(
+    () => js(audience, `document.querySelector('#winner-overlay').dataset.winnerId === '${group.id}' && document.querySelector('#winner-counter').textContent === '2 av 2'`),
+    "both tied winners get their turn",
+  );
+  await command(control, "motion", { enabled: false });
+  await until(
+    () => js(audience, "getComputedStyle(document.querySelector('.winner-rays')).animationName === 'none' && document.querySelector('#confetti').getContext('2d').getImageData(0,0,1600,900).data.every((v,i) => i % 4 !== 3 || v === 0)"),
+    "motion off stops finale effects",
+  );
+  await js(control, "document.querySelector('#back-to-board').click()");
+  await until(
+    () => js(audience, "document.querySelector('#winner-overlay').hidden && getComputedStyle(document.querySelector('#board')).visibility === 'visible'"),
+    "return to scoreboard",
+  );
+  await command(control, "set-points", { id: group.id, points: originalWinnerPoints });
+  await command(control, "set-points", { id: runner.id, points: originalRunnerPoints });
+  await command(control, "motion", { enabled: true });
+  check("tied winners rotate fairly, missing photos use a trophy, reduced motion stops effects, and the scoreboard returns");
   await command(control, "presentation-mode", { mode: "pause" });
   await until(
     () => js(audience, "!document.querySelector('#pause-overlay').hidden"),

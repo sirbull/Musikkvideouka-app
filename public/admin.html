@@ -115,12 +115,24 @@
             <label for="display-select">Publikumsskjerm</label>
             <select id="display-select"></select>
             <p id="display-help" class="display-help"></p>
-            <button id="start-show" class="button primary">
-              <span data-icon="play"></span>Start publikumsvisning
-            </button>
-            <button id="stop-show" class="button secondary" hidden>
-              <span data-icon="stop"></span>Avslutt publikumsvisning
-            </button>
+            <div class="show-actions">
+              <button id="start-show" class="button primary">
+                <span data-icon="play"></span>Start publikumsvisning
+              </button>
+              <button id="stop-show" class="button secondary" hidden>
+                <span data-icon="stop"></span>Avslutt publikumsvisning
+              </button>
+              <button
+                id="finish-show"
+                class="button finale-button"
+                title="Vis vinneren med konfetti på publikumsskjermen"
+              >
+                <span data-icon="trophy"></span>Ferdig
+              </button>
+              <button id="back-to-board" class="button secondary" hidden>
+                Tilbake til poengtavlen
+              </button>
+            </div>
             <div
               id="presentation-modes"
               class="mode-switch"
@@ -132,12 +144,6 @@
               ><button data-mode="pause">Pause</button
               ><button data-mode="black">Svart skjerm</button>
             </div>
-            <button id="finish-show" class="button finale-button" title="Vis vinneren med konfetti på publikumsskjermen">
-              <span data-icon="trophy"></span>Ferdig
-            </button>
-            <button id="back-to-board" class="button secondary" hidden>
-              Tilbake til poengtavlen
-            </button>
           </div>
         </aside>
       </div>

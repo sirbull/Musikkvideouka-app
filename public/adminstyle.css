@@ -426,12 +426,17 @@ select {
 .button.secondary:hover {
   background: #284158;
 }
-.show-controls > .button {
-  width: 100%;
+.show-actions {
+  display: flex;
+  gap: 8px;
 }
-.show-controls > .finale-button,
+.show-actions > .button {
+  flex: 1;
+  min-width: 0;
+}
+.show-actions > .finale-button,
 #back-to-board {
-  margin-top: 14px;
+  flex: 0 0 115px;
 }
 .button.finale-button {
   background: #e7c36a;
@@ -444,7 +449,7 @@ select {
 .button.finale-button:hover {
   background: #f7d989;
 }
-.show-controls > .button svg {
+.show-actions > .button svg {
   width: 14px;
   height: 14px;
 }

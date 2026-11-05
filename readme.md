@@ -68,6 +68,8 @@ Forhåndsvisningen er alltid synlig ved siden av gruppene. Dra den loddrette ski
 
 **Pause**, **Svart skjerm** og **Poengtavle** blir tilgjengelige når publikumsvisningen er startet. `F11` veksler fullskjerm i det aktive vinduet. **Visning → Animasjoner** slår bevegelse av eller på. Hvis en publikumsmonitor kobles fra, lukkes publikumsvisningen og kan startes igjen fra kontrollpanelet. Tomme gruppenavn vises ikke til publikum.
 
+Når alle poeng er telt, velg **Ferdig** under forhåndsvisningen. Uferdige poengberegninger bekreftes først. Vinneren vises med stort bilde, navn og poengsum, med animert innkomst, lys og konfetti. Ved delt førsteplass vises vinnerlagene etter tur. Mangler laget et bilde, vises en pokal. Finalen blir stående til du velger **Tilbake til poengtavlen** eller en annen visning. Animasjonsinnstillingen gjelder også finalen.
+
 ## Prosjektfiler og lagring
 
 `.mvuka` er en ZIP-basert prosjektpakke med et versjonert `project.json`-manifest og en `assets/`-mappe med innebygde bildekopier. Pakken inneholder navn, poeng, arrangementstittel, undertittel, animasjonsinnstilling og opptil 200 angre/gjør om-trinn. Den trenger ingen originalbilder eller filer ved siden av seg.
