@@ -22,13 +22,13 @@
   "description": "Poengtavle og publikumsvisning for Musikkvideouka",
   "dependencies": {
     "fflate": "^0.8.3",
-    "read-excel-file": "^9.3.14"
+    "read-excel-file": "^9.3.14",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "electron": "45.2.1",
     "electron-builder": "^26.18.0",
-    "png-to-ico": "^3.0.2",
-    "sharp": "^0.35.5"
+    "png-to-ico": "^3.0.2"
   },
   "build": {
     "appId": "no.musikkvideouka.scoreboard",

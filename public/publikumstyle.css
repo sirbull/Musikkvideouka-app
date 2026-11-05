@@ -81,6 +81,7 @@ body {
   left: 42px;
   right: 42px;
   height: 48px;
+  padding-inline: 220px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -128,6 +129,7 @@ body {
   box-shadow: 0 4px 14px #0003;
   will-change: transform;
   transform-origin: top left;
+  transition: background-color 250ms ease, box-shadow 250ms ease;
 }
 .stage-avatar {
   width: calc(var(--row-h) * 0.72);
@@ -165,6 +167,7 @@ body {
   align-items: baseline;
   gap: 7px;
   flex-shrink: 0;
+  padding-left: max(calc(var(--row-h) * 0.65), var(--score-space, 0px));
   padding-right: 3px;
 }
 .stage-points {
@@ -172,7 +175,7 @@ body {
   font-weight: 600;
   line-height: 1;
   display: inline-block;
-  transform-origin: center;
+  transform-origin: right center;
   font-variant-numeric: tabular-nums;
 }
 .stage-unit {
@@ -272,6 +275,11 @@ body {
 }
 .stage-row[data-medal="bronze"] .stage-name {
   color: #ebbf97;
+}
+.stage-row.score-changing {
+  background-color: #24476a;
+  box-shadow: 0 8px 24px #0006;
+  z-index: 100 !important;
 }
 @keyframes metal-shimmer {
   0%,
@@ -551,11 +559,12 @@ body.blackout {
 }
 .no-motion .stage-row {
   will-change: auto;
+  transition: none;
 }
 .audience-fullscreen {
   position: fixed;
   right: 16px;
-  bottom: 12px;
+  top: 12px;
   z-index: 30;
   background: #12395b;
   border: 1px solid #648ba9;

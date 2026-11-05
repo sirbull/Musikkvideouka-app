@@ -6,7 +6,6 @@ const {
   Menu,
   screen,
   powerSaveBlocker,
-  nativeImage,
   session,
 } = require("electron");
 const fs = require("node:fs/promises");
@@ -14,6 +13,8 @@ const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { randomUUID } = require("node:crypto");
 const { Project, atomicWrite, MAX_IMAGE, MAX_FILE } = require("./project.cjs");
+const { prepareImage, IMAGE_EXTENSIONS } = require("./images.cjs");
+const { normalisePoints } = require("./score-expression.cjs");
 
 const ROOT = path.resolve(__dirname, "..");
 const UI = path.join(ROOT, "public");
@@ -29,7 +30,8 @@ let queue = Promise.resolve();
 let blocker = null,
   closing = false,
   pendingOpen = null;
-let recoveryPath, sessionPath;
+let recoveryPath, sessionPath, preferencesPath;
+let lastImageDirectory = null;
 let closeRequested = false;
 
 const enqueue = (task) => {
@@ -62,6 +64,8 @@ function state() {
 
 function broadcast() {
   if (!project) return;
+  const decimalsMenu = Menu.getApplicationMenu()?.getMenuItemById("allow-decimals");
+  if (decimalsMenu) decimalsMenu.checked = !!project.document.settings.allowDecimals;
   const snapshot = state();
   for (const win of [controlWindow, audienceWindow])
     if (win && !win.isDestroyed())
@@ -229,32 +233,41 @@ function startPresentation(displayId) {
 async function pickImage(id) {
   if (!project.document.groups.some((g) => g.id === id))
     throw new Error("Gruppen finnes ikke.");
+  let defaultPath;
+  if (lastImageDirectory) {
+    try {
+      if ((await fs.stat(lastImageDirectory)).isDirectory())
+        defaultPath = lastImageDirectory;
+    } catch {
+      // Deleted folders and disconnected drives fall back to the system's default location.
+    }
+  }
   const result = await dialog.showOpenDialog(controlWindow, {
     title: "Velg gruppebilde",
+    ...(defaultPath ? { defaultPath } : {}),
     properties: ["openFile"],
     filters: [
-      { name: "Bilder", extensions: ["png", "jpg", "jpeg", "webp", "gif"] },
+      { name: "Bilder", extensions: IMAGE_EXTENSIONS },
+      { name: "Alle filer", extensions: ["*"] },
     ],
   });
   if (result.canceled) return;
   const filePath = result.filePaths[0];
+  lastImageDirectory = path.dirname(filePath);
+  try {
+    await atomicWrite(
+      preferencesPath,
+      Buffer.from(JSON.stringify({ lastImageDirectory })),
+      false,
+    );
+  } catch (error) {
+    // Remember it for this session even if the local preference file cannot be written.
+    console.warn("Kunne ikke huske bildemappen:", error.message);
+  }
   if ((await fs.stat(filePath)).size > MAX_IMAGE)
     throw new Error("Bildet er for stort. Maksimalt 12 MB.");
-  const source = await fs.readFile(filePath);
-  const image = nativeImage.createFromBuffer(source);
-  if (image.isEmpty())
-    throw new Error("Bildet kunne ikke åpnes. Velg et annet bilde.");
-  // Embed a bounded, portable raster copy. The original file is never modified.
-  const dimensions = image.getSize();
-  const resized =
-    Math.max(dimensions.width, dimensions.height) > 1000
-      ? image.resize(
-          dimensions.width >= dimensions.height
-            ? { width: 1000 }
-            : { height: 1000 },
-        )
-      : image;
-  project.addImage(id, resized.toPNG());
+  const image = await prepareImage(await fs.readFile(filePath));
+  project.addImage(id, image.bytes, image.poster);
   await persist();
 }
 
@@ -292,7 +305,7 @@ async function importExcel() {
     const group = {
       id: randomUUID(),
       name: String(row[nameColumn]).trim(),
-      points: pointsColumn < 0 ? 0 : Number(row[pointsColumn] || 0),
+      points: normalisePoints(pointsColumn < 0 ? 0 : Number(String(row[pointsColumn] || 0).replace(",", ".")), !!project.document.settings.allowDecimals),
       image: null,
     };
     const imageRef =
@@ -311,18 +324,13 @@ async function importExcel() {
           throw new Error("Velg bildet manuelt");
         if ((await fs.stat(resolved)).size > MAX_IMAGE)
           throw new Error("For stort");
-        const image = nativeImage.createFromBuffer(await fs.readFile(resolved));
-        if (image.isEmpty()) throw new Error("Ugyldig bilde");
-        const size = image.getSize();
-        const png = (
-          Math.max(size.width, size.height) > 1000
-            ? image.resize(
-                size.width >= size.height ? { width: 1000 } : { height: 1000 },
-              )
-            : image
-        ).toPNG();
-        group.image = `assets/${createHash("sha256").update(png).digest("hex")}.png`;
-        assets[group.image] = new Uint8Array(png);
+        const image = await prepareImage(await fs.readFile(resolved));
+        group.image = `assets/${createHash("sha256").update(image.bytes).digest("hex")}.${image.type}`;
+        assets[group.image] = new Uint8Array(image.bytes);
+        if (image.poster) {
+          group.imageStill = `assets/${createHash("sha256").update(image.poster).digest("hex")}.png`;
+          assets[group.imageStill] = new Uint8Array(image.poster);
+        }
       } catch {
         missing++;
       }
@@ -503,6 +511,18 @@ function buildMenu() {
             click: command("download-excel-template"),
           },
           { type: "separator" },
+          {
+            id: "allow-decimals",
+            label: "Tillat desimalpoeng",
+            type: "checkbox",
+            checked: !!project.document.settings.allowDecimals,
+            click: () => {
+              const item = Menu.getApplicationMenu()?.getMenuItemById("allow-decimals");
+              if (item) item.checked = !!project.document.settings.allowDecimals;
+              controlWindow.webContents.send("project-action", "toggle-decimals");
+            },
+          },
+          { type: "separator" },
           { role: "quit", label: "Avslutt" },
         ],
       },
@@ -572,6 +592,14 @@ else {
     .then(async () => {
       recoveryPath = path.join(app.getPath("userData"), "recovery.mvuka");
       sessionPath = path.join(app.getPath("userData"), "session.json");
+      preferencesPath = path.join(app.getPath("userData"), "preferences.json");
+      try {
+        const preferences = JSON.parse(await fs.readFile(preferencesPath, "utf8"));
+        if (typeof preferences.lastImageDirectory === "string" && path.isAbsolute(preferences.lastImageDirectory))
+          lastImageDirectory = preferences.lastImageDirectory;
+      } catch {
+        // Preferences are optional and independent of project recovery.
+      }
       session.defaultSession.setPermissionRequestHandler(
         (_contents, _permission, callback) => callback(false),
       );

@@ -169,7 +169,7 @@ input::placeholder {
   background: #23475d !important;
 }
 .workspace {
-  padding: 20px 24px;
+  padding: 8px 24px 20px;
   flex: 1;
   min-height: 0;
   display: flex;
@@ -236,22 +236,23 @@ body.resizing-panels * {
   cursor: col-resize !important;
 }
 .panel-heading {
-  height: 34px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   flex-shrink: 0;
 }
 .table-heading {
   display: grid;
-  grid-template-columns: 1fr 76px;
-  padding: 0 53px 9px 69px;
+  grid-template-columns: minmax(0, 1fr) 96px 88px;
+  column-gap: 8px;
+  padding: 0 46px 6px 69px;
   color: var(--muted);
   font-size: 11px;
   flex-shrink: 0;
 }
-.table-heading span:last-child {
+.table-heading span:not(:first-child) {
   text-align: center;
 }
 #groups {
@@ -263,7 +264,7 @@ body.resizing-panels * {
 }
 .group-row {
   display: grid;
-  grid-template-columns: 16px 28px minmax(50px, 1fr) 76px 24px;
+  grid-template-columns: 16px 28px minmax(50px, 1fr) 96px 88px 24px;
   align-items: center;
   gap: 8px;
   min-height: 40px;
@@ -327,8 +328,9 @@ body.resizing-panels * {
   padding: 4px 8px;
   font-size: 13px;
 }
-.points-input {
-  width: 76px;
+.points-input,
+.points-adjustment {
+  width: 100%;
   height: 28px;
   text-align: center;
   min-width: 0;
@@ -336,11 +338,18 @@ body.resizing-panels * {
   font-size: 16px;
   font-variant-numeric: tabular-nums;
 }
-.points-input[aria-invalid="true"] {
+.points-adjustment {
+  font-size: 13px;
+  text-align: left;
+  border-style: dashed;
+}
+.points-input[aria-invalid="true"],
+.points-adjustment[aria-invalid="true"] {
   border-color: #e79a82;
   outline-color: #e79a82;
 }
-.points-input[readonly] {
+.points-input[readonly],
+.points-adjustment[readonly] {
   cursor: progress;
 }
 .delete-group {
@@ -513,6 +522,15 @@ select {
 .file-menu-items button:hover {
   background: #2b445f;
 }
+#decimal-toggle {
+  justify-content: flex-start;
+}
+.menu-check {
+  visibility: hidden;
+}
+[aria-checked="true"] .menu-check {
+  visibility: visible;
+}
 .file-menu-items hr {
   border: 0;
   border-top: 1px solid #34475e;
@@ -605,7 +623,7 @@ dialog p {
     gap: 11px;
   }
   .workspace {
-    padding: 20px;
+    padding: 8px 20px 20px;
   }
   .workspace-grid {
     grid-template-columns:

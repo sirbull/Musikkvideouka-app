@@ -6,6 +6,8 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const { Project } = require("../desktop/project.cjs");
 const { readSheet } = require("read-excel-file/node");
+const sharp = require("sharp");
+const { imageFixtures } = require("./helpers/image-fixtures.cjs");
 const output = path.resolve(__dirname, "..", "test-results");
 const userData =
   process.env.MVUKA_SMOKE_RESUME || path.join(output, `smoke-${Date.now()}`);
@@ -20,11 +22,14 @@ app.on("browser-window-created", (_event, win) => {
   );
 });
 let selectedFile = null,
-  saveDestination = null;
-dialog.showOpenDialog = async () =>
-  selectedFile
+  saveDestination = null,
+  lastImageOptions = null;
+dialog.showOpenDialog = async (_parent, options) => {
+  if (options.title === "Velg gruppebilde") lastImageOptions = options;
+  return selectedFile
     ? { canceled: false, filePaths: [selectedFile] }
     : { canceled: true, filePaths: [] };
+};
 dialog.showSaveDialog = async () =>
   saveDestination
     ? { canceled: false, filePath: saveDestination }
@@ -111,6 +116,15 @@ async function run() {
     assert.equal((await get(control)).document.groups.length, 17);
     await command(control, "undo");
     assert.equal((await get(control)).document.groups.length, 48);
+    const recoveredDocument = (await get(control)).document;
+    await command(control, "image", { id: recoveredDocument.groups[0].id });
+    const rememberedDirectory = path.join(userData, "image-picker");
+    assert.equal(lastImageOptions.defaultPath, rememberedDirectory);
+    await fs.rmdir(rememberedDirectory);
+    await command(control, "image", { id: recoveredDocument.groups[0].id });
+    assert.equal(lastImageOptions.defaultPath, undefined);
+    assert.deepEqual((await get(control)).document, recoveredDocument);
+    console.log("PASS image folder survives restart; a missing folder falls back and cancel preserves the project");
     console.log(
       "PASS restart recovers the last session, image and redo even when the original file cannot be written",
     );
@@ -306,6 +320,60 @@ async function run() {
   check(
     "arithmetic fields confirm once, reject invalid expressions and flush before saving",
   );
+  assert.equal(await js(control, "[...document.querySelectorAll('.points-adjustment')].every(field => field.value === '' && !field.placeholder)"), true);
+  assert.equal(await js(control, "document.querySelector('.points-adjustment').getBoundingClientRect().left > document.querySelector('.points-input').getBoundingClientRect().right"), true);
+  await enterScore("10", 10);
+  const enterAdjustment = async (expression, expected) => {
+    await js(control, `{
+      const field = document.querySelector('.points-adjustment');
+      field.focus(); field.value = ${JSON.stringify(expression)};
+      field.dispatchEvent(new Event('input', {bubbles:true}));
+      field.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter',bubbles:true,cancelable:true}));
+    }`);
+    await until(async () => (await get(control)).document.groups[0].points === expected &&
+      await js(control, "document.querySelector('.points-adjustment').value === '' && !document.querySelector('.points-adjustment').readOnly"),
+      `adjust ${expression}`);
+  };
+  await enterAdjustment("5", 15);
+  await enterAdjustment("-3", 12);
+  await enterAdjustment("*2", 24);
+  await enterAdjustment("/2", 12);
+  await enterAdjustment("2+3", 17);
+  await js(control, "document.querySelector('.points-adjustment').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true})); document.querySelector('.points-adjustment').dispatchEvent(new FocusEvent('blur'))");
+  assert.equal((await get(control)).document.groups[0].points, 17);
+  await js(control, "document.querySelector('.points-adjustment').dispatchEvent(new KeyboardEvent('keydown',{key:'z',ctrlKey:true,bubbles:true,cancelable:true}))");
+  await until(async () => (await get(control)).document.groups[0].points === 12, "adjustment undo shortcut");
+  await js(control, "document.querySelector('.points-adjustment').dispatchEvent(new KeyboardEvent('keydown',{key:'y',ctrlKey:true,bubbles:true,cancelable:true}))");
+  await until(async () => (await get(control)).document.groups[0].points === 17, "adjustment redo shortcut");
+  await js(control, "const change = document.querySelector('.points-adjustment'); change.value='/2'; change.dispatchEvent(new Event('input',{bubbles:true})); change.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}))");
+  await until(() => js(control, "document.querySelector('.points-adjustment').getAttribute('aria-invalid') === 'true' && !document.querySelector('.points-adjustment').readOnly"), "fractions need the decimal option");
+  assert.equal((await get(control)).document.groups[0].points, 17);
+  const decimalMenu = Menu.getApplicationMenu().getMenuItemById("allow-decimals");
+  assert.equal(decimalMenu.checked, false);
+  decimalMenu.click();
+  await until(async () => (await get(control)).document.settings.allowDecimals === true, "File enables decimal scores even with a fractional draft");
+  assert.equal(decimalMenu.checked, true);
+  await js(control, "document.querySelector('.points-adjustment').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}))");
+  await until(async () => (await get(control)).document.groups[0].points === 8.5 && await js(control, "document.querySelector('.points-adjustment').value === ''"), "fractional division applies after enabling decimals");
+  await enterAdjustment("+0,25", 8.75);
+  await enterAdjustment("*2", 17.5);
+  assert.equal(await js(control, "document.querySelector('.points-input').value"), "17,5");
+  await until(() => js(control, "document.querySelector('#preview').contentDocument.querySelector('.stage-points')?.textContent === '17,5'"), "preview displays decimal commas");
+  await screenshot(control, "control-adjustment-decimals.png");
+  await command(control, "presentation-mode", { mode: "winner" });
+  await until(() => js(control, "document.querySelector('#preview').contentDocument.querySelector('#winner-points').textContent === '17,5'"), "finale displays decimal commas too");
+  await command(control, "presentation-mode", { mode: "scoreboard" });
+  await command(control, "undo");
+  assert.equal((await get(control)).document.groups[0].points, 8.75);
+  await command(control, "redo");
+  assert.equal((await get(control)).document.groups[0].points, 17.5);
+  await assert.rejects(command(control, "decimals", { enabled: false }), /inneholder desimalpoeng/);
+  assert.equal(decimalMenu.checked, true);
+  await enterScore("18", 18);
+  decimalMenu.click();
+  await until(async () => (await get(control)).document.settings.allowDecimals === false, "decimal option turns off after restoring whole scores");
+  assert.equal(decimalMenu.checked, false);
+  check("separate empty adjustment fields add, subtract, multiply and divide once; File controls decimal scores, formatting and undo/redo");
   while ((await get(control)).document.groups[0].points !== 0)
     await command(control, "undo");
   await command(control, "undo");
@@ -417,14 +485,46 @@ async function run() {
   const group = state.document.groups.at(-1);
   saveDestination = path.join(output, "smoke-project.mvuka");
   await command(control, "save");
-  const selectedImage = path.resolve(
+  const sourceImage = path.resolve(
     __dirname,
     "..",
     "dummy_album_covers",
     "artist_1.png",
   );
+  const imageDirectory = path.join(userData, "image-picker");
+  await fs.mkdir(imageDirectory);
+  const selectedImage = path.join(imageDirectory, "gruppe.png");
+  await fs.copyFile(sourceImage, selectedImage);
   selectedFile = selectedImage;
   await command(control, "image", { id: group.id });
+  assert.equal(lastImageOptions.defaultPath, undefined);
+  selectedFile = null;
+  await command(control, "image", { id: group.id });
+  assert.equal(lastImageOptions.defaultPath, imageDirectory);
+  await fs.unlink(selectedImage);
+  await fs.rmdir(imageDirectory);
+  await command(control, "image", { id: group.id });
+  assert.equal(lastImageOptions.defaultPath, undefined);
+  // Restore the folder to verify the persisted preference in the restart pass.
+  await fs.mkdir(imageDirectory);
+  check("image picker remembers the selected folder, preserves it on cancel and handles deleted folders");
+  const formats = await imageFixtures();
+  const animatedGroupId = (await get(control)).document.groups[0].id;
+  for (const [extension, data] of [["webp", formats.webp], ["avif", formats.avif], ["tiff", formats.tiff], ["svg", formats.svg], ["gif", formats.gif]]) {
+    selectedFile = path.join(imageDirectory, `gruppe.${extension}`);
+    await fs.writeFile(selectedFile, data);
+    await command(control, "image", { id: animatedGroupId });
+    const imported = (await get(control)).document.groups[0];
+    assert.match(imported.imageUrl, extension === "gif" ? /^data:image\/gif/ : /^data:image\/png/);
+    await fs.unlink(selectedFile);
+  }
+  selectedFile = null;
+  assert.ok(["webp", "gif", "avif", "tiff", "svg", "jfif"].every((ext) => lastImageOptions.filters[0].extensions.includes(ext)));
+  const animatedProject = Project.decode(await fs.readFile(saveDestination));
+  const animatedGroup = animatedProject.document.groups[0];
+  assert.equal((await sharp(Buffer.from(animatedProject.assets[animatedGroup.image]), { animated: true }).metadata()).pages, 2);
+  assert.ok(animatedProject.assets[animatedGroup.imageStill]);
+  check("native image picker imports WebP, AVIF, TIFF, SVG and GIF; animation and its poster remain embedded after source deletion");
   state = await get(control);
   assert.match(
     state.document.groups.at(-1).imageUrl,
@@ -514,6 +614,25 @@ async function run() {
     "fullscreen button returns after Escape",
   );
   check("audience button enters native fullscreen, hides the menu and itself, and Escape restores the window; preview stays clean");
+  await until(
+    () => js(audience, `document.querySelector('[data-id="${animatedGroupId}"] .stage-avatar img')?.src.startsWith('data:image/gif')`),
+    "animated GIF appears in audience",
+  );
+  await command(control, "motion", { enabled: false });
+  await until(
+    () => js(audience, `document.querySelector('[data-id="${animatedGroupId}"] .stage-avatar img')?.src.startsWith('data:image/png')`),
+    "motion off uses a still frame for audience GIF",
+  );
+  await until(
+    () => js(control, `document.querySelector('[data-id="${animatedGroupId}"] .avatar-content img')?.src.startsWith('data:image/png') && document.querySelector('#preview').contentDocument.querySelector('[data-id="${animatedGroupId}"] .stage-avatar img')?.src.startsWith('data:image/png')`),
+    "control and preview also stop GIF animation",
+  );
+  await command(control, "motion", { enabled: true });
+  await until(
+    () => js(audience, `document.querySelector('[data-id="${animatedGroupId}"] .stage-avatar img')?.src.startsWith('data:image/gif')`),
+    "motion on restores animated GIF",
+  );
+  check("audience, preview and control show GIF animation and switch to its still frame when motion is disabled");
   const fullWidthRows = await js(
     audience,
     "[...document.querySelectorAll('.stage-row')].every(row => row.offsetLeft === 0 && Math.abs(row.offsetWidth - document.querySelector('#board').clientWidth) <= 1)",
@@ -609,6 +728,34 @@ async function run() {
   );
   assert.equal(highlighted, true);
   await until(
+    () => js(audience, `(() => { const score=document.querySelector('[data-id="${runner.id}"] .stage-points'); const style=getComputedStyle(score); return new DOMMatrixReadOnly(style.transform).a >= 1.34 && style.color === 'rgb(255, 219, 96)' && document.querySelector('.leader').dataset.id !== '${runner.id}'; })()`),
+    "score grows and becomes yellow before the row moves",
+  );
+  await until(
+    () => js(audience, `document.querySelector('[data-id="${runner.id}"]').getAnimations().some(a => a.effect.getKeyframes().some(frame => frame.transform) && a.playState === 'running')`),
+    "row starts moving after score emphasis",
+  );
+  await js(audience, `{
+    const movingRow = document.querySelector('[data-id="${runner.id}"]');
+    window.capturedRankMove = movingRow.getAnimations().find(a => a.effect.getKeyframes().some(frame => frame.transform));
+    window.capturedRankMove.pause();
+    window.capturedRankMove.currentTime = window.capturedRankMove.effect.getTiming().duration / 2;
+  }`);
+  const movingScore = await js(audience, `(() => {
+    const row = document.querySelector('[data-id="${runner.id}"]');
+    const score = row.querySelector('.stage-points');
+    const style = getComputedStyle(score);
+    const rect = score.getBoundingClientRect();
+    return { scale: new DOMMatrixReadOnly(style.transform).a, color: style.color,
+      clearOfName: rect.left > row.querySelector('.stage-name').getBoundingClientRect().right,
+      clearOfUnit: rect.right < row.querySelector('.stage-unit').getBoundingClientRect().left };
+  })()`);
+  assert.ok(movingScore.scale >= 1.34);
+  assert.equal(movingScore.color, "rgb(255, 219, 96)");
+  assert.ok(movingScore.clearOfName && movingScore.clearOfUnit);
+  await screenshot(audience, "audience-score-moving.png");
+  await js(audience, "window.capturedRankMove.play()");
+  await until(
     () =>
       js(
         audience,
@@ -623,7 +770,23 @@ async function run() {
     ),
     0,
   );
-  check("score pulse finishes before animated rank change");
+  await until(
+    () => js(audience, `(() => { const score=document.querySelector('[data-id="${runner.id}"] .stage-points'); return score.getAnimations().length === 0 && getComputedStyle(score).transform === 'none' && getComputedStyle(score).color === 'rgb(255, 255, 255)'; })()`),
+    "score returns to normal only after the move",
+  );
+  check("score grows before moving, stays large and yellow throughout the move without overlapping text, then returns to normal");
+
+  await Promise.all(Array.from({ length: 4 }, () => command(control, "points", { id: runner.id, delta: 1 })));
+  await until(
+    () => js(audience, `document.querySelector('[data-id="${runner.id}"] .stage-points').textContent === '${runner.points + 204}' && document.querySelector('[data-id="${runner.id}"] .stage-points').getAnimations().length === 0`),
+    "rapid updates settle on the latest total",
+  );
+  await command(control, "set-points", { id: runner.id, points: runner.points + 200 });
+  await until(
+    () => js(audience, `document.querySelector('[data-id="${runner.id}"] .stage-points').textContent === '${runner.points + 200}' && document.querySelector('[data-id="${runner.id}"] .stage-points').getAnimations().length === 0`),
+    "score correction settles without leaving a highlight",
+  );
+  check("rapid score changes and corrections reach their final total without leaving an animation or highlight behind");
   assert.equal(
     await js(
       audience,
@@ -766,7 +929,24 @@ async function run() {
   );
   await screenshot(audience, "audience-medals.png");
   await command(control, "motion", { enabled: false });
-  for (const item of names.slice(3))
+  const threeTeamHeight = await js(audience, "Math.max(...[...document.querySelectorAll('.stage-row')].map(row => row.offsetTop + row.offsetHeight)) / document.querySelector('#board').clientHeight");
+  assert.ok(threeTeamHeight > 0.6 && threeTeamHeight < 0.8, `three teams leave natural space below (${threeTeamHeight})`);
+  for (const item of names.slice(3, 10))
+    await command(control, "rename-group", item);
+  await until(
+    () => js(audience, "document.querySelectorAll('.stage-row').length === 10"),
+    "ten group layout",
+  );
+  const tenTeamHeight = await js(audience, "Math.max(...[...document.querySelectorAll('.stage-row')].map(row => row.offsetTop + row.offsetHeight)) / document.querySelector('#board').clientHeight");
+  assert.ok(tenTeamHeight > 0.98 && tenTeamHeight <= 1.002, `ten teams fill the available height (${tenTeamHeight})`);
+  assert.equal(await js(audience, "(() => { const photo=document.querySelector('.leader .stage-avatar').getBoundingClientRect(); const second=document.querySelector('[data-medal=silver]').getBoundingClientRect(); const header=document.querySelector('.stage-heading').getBoundingClientRect(); return photo.bottom < second.top && photo.top > header.bottom; })()"), true);
+  await until(
+    () => js(control, "document.querySelector('#preview').contentDocument.querySelectorAll('.stage-row').length === 10"),
+    "preview follows automatic audience sizing",
+  );
+  await screenshot(audience, "audience-ten-groups.png");
+  check("ten groups fill the available height, three groups retain breathing room, and the larger leader photo stays clear of its neighbors");
+  for (const item of names.slice(10))
     await command(control, "rename-group", item);
   await until(
     () => js(audience, "document.querySelectorAll('.stage-row').length === 12"),

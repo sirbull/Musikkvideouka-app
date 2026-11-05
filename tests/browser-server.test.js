@@ -6,6 +6,7 @@ const path = require("node:path");
 const { createDevServer } = require("../scripts/dev-server.cjs");
 const { Project } = require("../desktop/project.cjs");
 const { readSheet } = require("read-excel-file/node");
+const { imageFixtures } = require("./helpers/image-fixtures.cjs");
 
 async function fixture(t, dataDir) {
   const directory =
@@ -78,6 +79,7 @@ test("browser scores, images and persistent redo round-trip through downloadable
     path.resolve(__dirname, "..", "public/brand/icon.png"),
   );
   await server.command("image", { id, bytes: png.toString("base64") });
+  const importedPng = Buffer.from((await server.get()).document.groups[0].imageUrl.split(",")[1], "base64");
   await Promise.all(
     Array.from({ length: 8 }, () =>
       server.command("points", { id, delta: 12 }),
@@ -92,7 +94,7 @@ test("browser scores, images and persistent redo round-trip through downloadable
   assert.equal(portable.view().canRedo, true);
   assert.deepEqual(
     Buffer.from(portable.assets[portable.document.groups[0].image]),
-    png,
+    importedPng,
   );
   const oldCopy = (await server.get()).projectPath;
   await assert.rejects(server.command("new", { title: "  " }), /prosjektnavn/);
@@ -198,6 +200,28 @@ test("winner mode requires a named group and returns to the scoreboard without c
   assert.equal((await server.get()).presentation.mode, "scoreboard");
 });
 
+test("decimal adjustments persist through browser downloads and reopen without losing score precision or history", async (t) => {
+  const server = await fixture(t);
+  const id = (await server.get()).document.groups[0].id;
+  await server.command("set-points", { id, points: 5 });
+  await assert.rejects(server.command("adjust-points", { id, expression: "/2" }), /helt antall/);
+  await server.command("decimals", { enabled: true });
+  await server.command("adjust-points", { id, expression: "/2" });
+  await server.command("adjust-points", { id, expression: "+0,25" });
+  assert.equal((await server.get()).document.groups[0].points, 2.75);
+  const response = await fetch(`${server.base}/api/project`);
+  const bytes = Buffer.from(await response.arrayBuffer());
+  await server.command("new", { title: "Neste prosjekt" });
+  await server.command("open", { name: "desimaler.mvuka", bytes: bytes.toString("base64") });
+  assert.equal((await server.get()).document.settings.allowDecimals, true);
+  assert.equal((await server.get()).document.groups[0].points, 2.75);
+  await assert.rejects(server.command("decimals", { enabled: false }), /inneholder desimalpoeng/);
+  await server.command("undo");
+  assert.equal((await server.get()).document.groups[0].points, 2.5);
+  await server.command("redo");
+  assert.equal((await server.get()).document.groups[0].points, 2.75);
+});
+
 test("Excel template downloads as a readable workbook without changing the project", async (t) => {
   const server = await fixture(t);
   const before = await server.get();
@@ -228,4 +252,22 @@ test("browser Excel import is undoable and reports images requiring manual selec
   assert.equal((await server.get()).document.groups.at(-1).name, "Før import");
   await assert.rejects(server.command("open", { bytes: "not a project" }));
   assert.equal((await server.get()).document.groups.at(-1).name, "Før import");
+});
+
+test("browser uploads normalize TIFF and preserve portable GIF animation and its still image", async (t) => {
+  const server = await fixture(t);
+  const images = await imageFixtures();
+  const id = (await server.get()).document.groups[0].id;
+  await server.command("image", { id, bytes: images.tiff.toString("base64") });
+  assert.match((await server.get()).document.groups[0].imageUrl, /^data:image\/png/);
+  await server.command("image", { id, bytes: images.gif.toString("base64") });
+  const group = (await server.get()).document.groups[0];
+  assert.match(group.imageUrl, /^data:image\/gif/);
+  assert.match(group.imageStillUrl, /^data:image\/png/);
+  await assert.rejects(server.command("image", { id, bytes: Buffer.from("bad image").toString("base64") }), /kunne ikke åpnes/);
+  assert.equal((await server.get()).document.groups[0].image, group.image);
+  const download = await fetch(`${server.base}/api/project`);
+  const portable = Project.decode(Buffer.from(await download.arrayBuffer()));
+  assert.equal(portable.view().document.groups[0].imageStillUrl, group.imageStillUrl);
+  assert.equal(portable.view().document.groups[0].imageUrl, group.imageUrl);
 });

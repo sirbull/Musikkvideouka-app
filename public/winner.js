@@ -65,11 +65,12 @@
     frame = requestAnimationFrame(draw);
   }
 
-  function fillPortrait(element, group) {
+  function fillPortrait(element, group, motion) {
     element.replaceChildren();
-    if (group.imageUrl) {
+    const imageUrl = (!motion && group.imageStillUrl) || group.imageUrl;
+    if (imageUrl) {
       const image = document.createElement("img");
-      image.src = group.imageUrl;
+      image.src = imageUrl;
       image.alt = "";
       element.append(image);
     } else {
@@ -78,12 +79,12 @@
   }
 
   function show(group, index, count, motion) {
-    fillPortrait(portrait, group);
+    fillPortrait(portrait, group, motion);
     document.getElementById("winner-label").textContent = count > 1 ? "Delt førsteplass" : "Vinner";
     const name = document.getElementById("winner-name");
     name.textContent = group.name;
     name.style.fontSize = group.name.length > 65 ? "32px" : group.name.length > 40 ? "38px" : group.name.length > 22 ? "48px" : "68px";
-    document.getElementById("winner-points").textContent = group.points;
+    document.getElementById("winner-points").textContent = formatScore(group.points);
     const counter = document.getElementById("winner-counter");
     counter.hidden = count === 1;
     counter.textContent = `${index + 1} av ${count}`;
@@ -112,13 +113,13 @@
     }
     const group = groups[index];
     element.dataset.groupId = group.id;
-    fillPortrait(element.querySelector(".podium-portrait"), group);
+    fillPortrait(element.querySelector(".podium-portrait"), group, motion);
     element.querySelector(".podium-label").textContent =
       `${groups.length > 1 ? "Delt " : ""}${element.dataset.place}. plass`;
     const name = element.querySelector(".podium-name");
     name.textContent = group.name;
     name.style.fontSize = group.name.length > 50 ? "26px" : group.name.length > 25 ? "32px" : "40px";
-    element.querySelector(".podium-points").textContent = group.points;
+    element.querySelector(".podium-points").textContent = formatScore(group.points);
     const counter = element.querySelector(".podium-counter");
     counter.hidden = groups.length < 2;
     counter.textContent = `${index + 1} av ${groups.length}`;
@@ -143,7 +144,7 @@
       active = active && winners.length > 0;
       document.getElementById("stage").classList.toggle("winner-active", active);
       overlay.hidden = !active;
-      const next = active ? JSON.stringify([doc.id, motion, places.map((groups) => groups.map(({ id, name, points, image }) => [id, name, points, image]))]) : null;
+      const next = active ? JSON.stringify([doc.id, motion, places.map((groups) => groups.map(({ id, name, points, image, imageStill }) => [id, name, points, image, imageStill]))]) : null;
       if (next === signature) return;
       signature = next;
       stop();

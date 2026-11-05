@@ -2,7 +2,7 @@ const { randomUUID, createHash } = require("node:crypto");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const { zip, unzipSync, strToU8, strFromU8 } = require("fflate");
-const { calculateScore } = require("./score-expression.cjs");
+const { calculateScore, normalisePoints } = require("./score-expression.cjs");
 
 const FORMAT = "no.musikkvideouka.project";
 const MAX_FILE = 256 * 1024 * 1024;
@@ -24,7 +24,7 @@ function emptyDocument() {
     title: "Musikkvideouka",
     subtitle: "",
     groups: [],
-    settings: { motion: true },
+    settings: { motion: true, allowDecimals: false },
   };
 }
 
@@ -33,6 +33,9 @@ function validateDocument(doc) {
   text(doc.id, 100, "prosjekt-ID");
   text(doc.title, 120, "tittel");
   text(doc.subtitle, 180, "undertittel");
+  if (!doc.settings || typeof doc.settings.motion !== "boolean" ||
+      (doc.settings.allowDecimals !== undefined && typeof doc.settings.allowDecimals !== "boolean"))
+    fail("Ugyldige visningsinnstillinger.");
   if (!Array.isArray(doc.groups) || doc.groups.length > MAX_GROUPS)
     fail(`Prosjektet kan ha maksimalt ${MAX_GROUPS} grupper.`);
   const ids = new Set();
@@ -41,16 +44,16 @@ function validateDocument(doc) {
     if (!g.id || ids.has(g.id)) fail("Gruppene må ha unike ID-er.");
     ids.add(g.id);
     text(g.name, 100, "gruppenavn");
-    if (!Number.isSafeInteger(g.points) || Math.abs(g.points) > 999999)
-      fail("Poeng må være heltall mellom −999999 og 999999.");
+    if (normalisePoints(g.points, !!doc.settings.allowDecimals) !== g.points)
+      fail("Poeng kan ha maksimalt seks desimaler.");
     if (
       g.image !== null &&
       !/^assets\/[a-f0-9]{64}\.(png|jpg|webp|gif)$/.test(g.image)
     )
       fail("Ugyldig bildereferanse.");
+    if (g.imageStill != null && (!g.image || !/^assets\/[a-f0-9]{64}\.png$/.test(g.imageStill)))
+      fail("Ugyldig stillbilde for animasjon.");
   }
-  if (!doc.settings || typeof doc.settings.motion !== "boolean")
-    fail("Ugyldige visningsinnstillinger.");
   return doc;
 }
 
@@ -73,14 +76,21 @@ function imageType(bytes) {
   fail("Velg et PNG-, JPEG-, WebP- eller GIF-bilde.");
 }
 
-function referencedAssets(document, past, future) {
-  const refs = new Set();
-  for (const doc of [
+function snapshots(document, past, future) {
+  return [
     document,
     ...past.flatMap((e) => [e.before, e.after]),
     ...future.flatMap((e) => [e.before, e.after]),
-  ]) {
-    for (const group of doc.groups) if (group.image) refs.add(group.image);
+  ];
+}
+
+function referencedAssets(document, past, future) {
+  const refs = new Set();
+  for (const doc of snapshots(document, past, future)) {
+    for (const group of doc.groups) {
+      if (group.image) refs.add(group.image);
+      if (group.imageStill) refs.add(group.imageStill);
+    }
   }
   return refs;
 }
@@ -165,26 +175,35 @@ class Project {
         );
       case "points":
         return this.edit("Gi poeng", (doc) => {
-          if (!Number.isSafeInteger(payload.delta))
+          if (typeof payload.delta !== "number" || !Number.isFinite(payload.delta))
             fail("Skriv inn et helt antall poeng.");
-          groupIn(doc).points += payload.delta;
+          groupIn(doc).points = normalisePoints(groupIn(doc).points + payload.delta, !!doc.settings.allowDecimals);
         });
       case "set-points":
         return this.edit(
           "Endre poeng",
           (doc) => {
-            if (!Number.isSafeInteger(payload.points))
-              fail("Skriv inn et helt antall poeng.");
-            groupIn(doc).points = payload.points;
+            groupIn(doc).points = normalisePoints(payload.points, !!doc.settings.allowDecimals);
           },
           typeof payload.editId === "string"
             ? `points:${payload.id}:${text(payload.editId, 100, "redigerings-ID")}`
             : null,
         );
       case "calculate-points":
+      case "adjust-points":
         return this.edit("Endre poeng", (doc) => {
           const group = groupIn(doc);
-          group.points = calculateScore(payload.expression, group.points);
+          group.points = calculateScore(payload.expression, group.points, {
+            allowDecimals: !!doc.settings.allowDecimals,
+            adjustment: action === "adjust-points",
+          });
+        });
+      case "decimals":
+        return this.edit("Endre desimalpoeng", (doc) => {
+          if (typeof payload.enabled !== "boolean") fail("Ugyldig innstilling.");
+          if (!payload.enabled && doc.groups.some((g) => !Number.isInteger(g.points)))
+            fail("Prosjektet inneholder desimalpoeng. Endre disse til heltall før du slår av desimaler.");
+          doc.settings.allowDecimals = payload.enabled;
         });
       case "title":
         return this.edit(
@@ -216,16 +235,26 @@ class Project {
     }
   }
 
-  addImage(id, bytes) {
+  addImage(id, bytes, stillBytes = null) {
     if (bytes.length > MAX_IMAGE)
       fail("Bildet er for stort. Maksimal størrelse er 12 MB.");
     const type = imageType(bytes);
     const name = `assets/${createHash("sha256").update(bytes).digest("hex")}.${type}`;
     if (!this.document.groups.some((g) => g.id === id))
       fail("Gruppen finnes ikke.");
+    let stillName = null;
+    if (stillBytes) {
+      if (stillBytes.length > MAX_IMAGE || imageType(stillBytes) !== "png")
+        fail("Ugyldig stillbilde for animasjon.");
+      stillName = `assets/${createHash("sha256").update(stillBytes).digest("hex")}.png`;
+    }
     this.assets[name] = new Uint8Array(bytes);
+    if (stillName) this.assets[stillName] = new Uint8Array(stillBytes);
     return this.edit("Endre bilde", (doc) => {
-      doc.groups.find((g) => g.id === id).image = name;
+      const group = doc.groups.find((g) => g.id === id);
+      group.image = name;
+      if (stillName) group.imageStill = stillName;
+      else delete group.imageStill;
     });
   }
 
@@ -255,7 +284,9 @@ class Project {
     this.pruneAssets();
     const manifest = {
       format: FORMAT,
-      version: 1,
+      // Older app versions discard unknown asset references, so protect animation posters with v2.
+      version: snapshots(this.document, this.past, this.future).some((doc) => doc.settings.allowDecimals) ? 3 :
+        snapshots(this.document, this.past, this.future).some((doc) => doc.groups.some((g) => g.imageStill)) ? 2 : 1,
       document: this.document,
       history: { past: this.past, future: this.future },
     };
@@ -301,7 +332,7 @@ class Project {
     if (!files["project.json"])
       fail("Dette er ikke en Musikkvideouka-prosjektfil.");
     const manifest = JSON.parse(strFromU8(files["project.json"]));
-    if (manifest.format !== FORMAT || manifest.version !== 1)
+    if (manifest.format !== FORMAT || ![1, 2, 3].includes(manifest.version))
       fail("Prosjektformatet støttes ikke av denne versjonen.");
     validateDocument(manifest.document);
     const past = manifest.history?.past;
@@ -339,6 +370,10 @@ class Project {
       const ext = group.image?.split(".").pop();
       group.imageUrl = bytes
         ? `data:image/${ext === "jpg" ? "jpeg" : ext};base64,${Buffer.from(bytes).toString("base64")}`
+        : null;
+      const still = this.assets[group.imageStill];
+      group.imageStillUrl = still
+        ? `data:image/png;base64,${Buffer.from(still).toString("base64")}`
         : null;
     }
     return {

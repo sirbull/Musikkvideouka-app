@@ -1,5 +1,14 @@
 // A small arithmetic parser: no eval, functions, identifiers or executable input.
-function calculateScore(expression, currentPoints) {
+function normalisePoints(value, allowDecimals = false) {
+  if (typeof value !== "number" || !Number.isFinite(value) || Math.abs(value) > 999999)
+    throw new Error("Poeng må være et tall mellom −999999 og 999999.");
+  const rounded = allowDecimals ? Math.round(value * 1_000_000) / 1_000_000 : Math.round(value);
+  if (!allowDecimals && Math.abs(value - rounded) > Number.EPSILON * Math.max(1, Math.abs(value)) * 8)
+    throw new Error("Resultatet må være et helt antall poeng. Velg File → Tillat desimalpoeng for å bruke desimaler.");
+  return Object.is(rounded, -0) ? 0 : rounded;
+}
+
+function calculateScore(expression, currentPoints, { allowDecimals = false, adjustment = false } = {}) {
   if (typeof expression !== "string" || expression.length > 120)
     throw new Error("Regnestykket kan ha maksimalt 120 tegn.");
   let source = expression
@@ -8,10 +17,12 @@ function calculateScore(expression, currentPoints) {
     .replace(/×/g, "*")
     .replace(/÷/g, "/");
   if (!source) throw new Error("Skriv inn en poengsum eller et regnestykke.");
-  if (!Number.isSafeInteger(currentPoints))
+  if (!Number.isFinite(currentPoints) || (!allowDecimals && !Number.isSafeInteger(currentPoints)))
     throw new Error("Den gjeldende poengsummen er ugyldig.");
+  const base = currentPoints.toFixed(6);
   if (source.startsWith("=")) source = source.slice(1).trim();
-  else if (/^[+\-*/]/.test(source)) source = `(${currentPoints})${source}`;
+  else if (/^[+\-*/]/.test(source)) source = `(${base})${source}`;
+  else if (adjustment) source = `(${base})+(${source})`;
   let position = 0,
     depth = 0;
   const invalid = () => {
@@ -80,11 +91,7 @@ function calculateScore(expression, currentPoints) {
   const result = sum();
   skip();
   if (position !== source.length) invalid();
-  if (!Number.isSafeInteger(result))
-    throw new Error("Resultatet må være et helt antall poeng.");
-  if (Math.abs(result) > 999999)
-    throw new Error("Poeng må være mellom −999999 og 999999.");
-  return Object.is(result, -0) ? 0 : result;
+  return normalisePoints(result, allowDecimals);
 }
 
-module.exports = { calculateScore };
+module.exports = { calculateScore, normalisePoints };

@@ -2,6 +2,7 @@ const api = window.musikk;
 const $ = (id) => document.getElementById(id);
 const rows = new Map();
 const scoreEditors = new Map();
+const reducedImageMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 let current, toastTimer;
 
 function toast(message) {
@@ -11,6 +12,10 @@ function toast(message) {
   toastTimer = setTimeout(() => {
     $("toast").hidden = true;
   }, 6000);
+}
+function clearToast() {
+  clearTimeout(toastTimer);
+  $("toast").hidden = true;
 }
 async function command(action, payload) {
   try {
@@ -70,6 +75,11 @@ async function action(name) {
     return;
   if (name === "new") newProject();
   if (name === "reset-points") resetPoints();
+  if (name === "toggle-decimals") {
+    const enabled = !current.document.settings.allowDecimals;
+    if (!enabled && !(await prepareProjectChange())) return;
+    if (await command("decimals", { enabled })) clearToast();
+  }
   if (
     ["open", "save", "save-as", "import", "download-excel-template"].includes(name)
   )
@@ -87,31 +97,25 @@ async function prepareProjectChange() {
 }
 window.prepareProjectChange = prepareProjectChange;
 
-function createRow(group) {
-  const row = document.createElement("div");
-  row.className = "group-row";
-  row.dataset.id = group.id;
-  row.innerHTML = `<span class="group-index"></span><button class="group-avatar" title="Velg bilde"><span class="avatar-content"></span><span class="photo-hover">${icon("image")}</span></button><input class="group-name" maxlength="100" autocomplete="off"><input class="points-input" type="text" inputmode="text" maxlength="120" autocomplete="off" spellcheck="false"><button class="delete-group" title="Slett gruppe">${icon("trash")}</button>`;
-  const name = row.querySelector(".group-name"),
-    points = row.querySelector(".points-input");
-  let nameEdit = crypto.randomUUID();
-  name.onfocus = () => {
-    nameEdit = crypto.randomUUID();
-  };
-  name.oninput = () =>
-    command("rename-group", {
-      id: group.id,
-      name: name.value,
-      editId: nameEdit,
-    });
-  const scoreHint =
-    "Skriv en poengsum eller et regnestykke, f.eks. 23-5 eller +1. Enter beregner.";
+function showScoreValue(points, value) {
+  points.value = formatScore(value);
+  points.style.fontSize = points.value.length > 11 ? "12px" : points.value.length > 8 ? "14px" : "";
+}
+
+function createScoreEditor(points, id, adjustment = false) {
+  const scoreHint = adjustment
+    ? "Endre poeng: 5 eller +5 legger til, -5 trekker fra, *2 ganger og /2 deler. Enter beregner."
+    : "Skriv en poengsum eller et regnestykke, f.eks. 23-5 eller +1. Enter beregner.";
   let pendingScore = null;
   const savedScore = () =>
-    current.document.groups.find((g) => g.id === group.id)?.points ?? 0;
+    current.document.groups.find((g) => g.id === id)?.points ?? 0;
+  const resetValue = (value) => {
+    if (adjustment) points.value = "";
+    else showScoreValue(points, value);
+  };
   function cancelScore() {
     if (pendingScore) return;
-    points.value = savedScore();
+    resetValue(savedScore());
     delete points.dataset.draft;
     points.removeAttribute("aria-invalid");
     points.title = scoreHint;
@@ -128,22 +132,23 @@ function createRow(group) {
     points.setAttribute("aria-busy", "true");
     pendingScore = (async () => {
       try {
-        await api.command("calculate-points", { id: group.id, expression });
+        await api.command(adjustment ? "adjust-points" : "calculate-points", { id, expression });
         const latest = await api.getState().catch(() => current);
-        points.value =
-          latest.document.groups.find((g) => g.id === group.id)?.points ??
-          savedScore();
+        resetValue(
+          latest.document.groups.find((g) => g.id === id)?.points ?? savedScore(),
+        );
         delete points.dataset.draft;
         points.removeAttribute("aria-invalid");
         points.title = scoreHint;
+        clearToast();
         return true;
       } catch (error) {
         const latest = await api.getState().catch(() => current);
         if (latest.saveError) {
           // A disk failure may happen after the score was applied. Never apply a relative expression twice.
-          points.value =
-            latest.document.groups.find((g) => g.id === group.id)?.points ??
-            savedScore();
+          resetValue(
+            latest.document.groups.find((g) => g.id === id)?.points ?? savedScore(),
+          );
           delete points.dataset.draft;
         } else {
           points.setAttribute("aria-invalid", "true");
@@ -175,21 +180,33 @@ function createRow(group) {
     }
     if (event.key === "Enter") {
       event.preventDefault();
-      if (await commitScore()) points.blur();
+      if (await commitScore()) {
+        if (!adjustment) points.blur();
+      }
     }
   };
-  name.onkeydown = (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      name.blur();
-    }
-  };
-  scoreEditors.set(group.id, {
+  scoreEditors.set(points, {
     commit: commitScore,
     cancel: cancelScore,
     focus: () => points.focus(),
     busy: () => !!pendingScore,
   });
+}
+
+function createRow(group) {
+  const row = document.createElement("div");
+  row.className = "group-row";
+  row.dataset.id = group.id;
+  row.innerHTML = `<span class="group-index"></span><button class="group-avatar" title="Velg bilde"><span class="avatar-content"></span><span class="photo-hover">${icon("image")}</span></button><input class="group-name" maxlength="100" autocomplete="off"><input class="points-input" type="text" inputmode="text" maxlength="120" autocomplete="off" spellcheck="false"><input class="points-adjustment" type="text" inputmode="text" maxlength="120" autocomplete="off" spellcheck="false"><button class="delete-group" title="Slett gruppe">${icon("trash")}</button>`;
+  const name = row.querySelector(".group-name");
+  let nameEdit = crypto.randomUUID();
+  name.onfocus = () => { nameEdit = crypto.randomUUID(); };
+  name.oninput = () => command("rename-group", { id: group.id, name: name.value, editId: nameEdit });
+  name.onkeydown = (event) => {
+    if (event.key === "Enter") { event.preventDefault(); name.blur(); }
+  };
+  createScoreEditor(row.querySelector(".points-input"), group.id);
+  createScoreEditor(row.querySelector(".points-adjustment"), group.id, true);
   row.querySelector(".group-avatar").onclick = () =>
     command("image", { id: group.id });
   row.querySelector(".delete-group").onclick = async () => {
@@ -211,6 +228,7 @@ function createRow(group) {
 function render(state) {
   current = state;
   const doc = state.document;
+  $("decimal-toggle").setAttribute("aria-checked", !!doc.settings.allowDecimals);
   if (document.activeElement !== $("project-name"))
     $("project-name").value = doc.title;
   $("project-name").title = state.projectPath || "Prosjektnavn";
@@ -242,7 +260,8 @@ function render(state) {
     if (!doc.groups.some((g) => g.id === id)) {
       row.remove();
       rows.delete(id);
-      scoreEditors.delete(id);
+      scoreEditors.delete(row.querySelector(".points-input"));
+      scoreEditors.delete(row.querySelector(".points-adjustment"));
     }
   doc.groups.forEach((group, index) => {
     let row = rows.get(group.id);
@@ -257,13 +276,14 @@ function render(state) {
       points = row.querySelector(".points-input");
     if (document.activeElement !== name) name.value = group.name;
     if (document.activeElement !== points && points.dataset.draft !== "true")
-      points.value = group.points;
+      showScoreValue(points, group.points);
     name.placeholder = `Gruppenavn ${index + 1}`;
     name.setAttribute("aria-label", `Navn på gruppe ${index + 1}`);
     points.setAttribute(
       "aria-label",
       `Poeng for ${group.name || "gruppe " + (index + 1)}`,
     );
+    row.querySelector(".points-adjustment").setAttribute("aria-label", `Endre poeng for ${group.name || "gruppe " + (index + 1)}`);
     row
       .querySelector(".group-avatar")
       .setAttribute(
@@ -277,14 +297,17 @@ function render(state) {
         `Slett ${group.name || "gruppe " + (index + 1)}`,
       );
     const avatar = row.querySelector(".avatar-content");
-    if (avatar.dataset.image !== (group.image || "")) {
-      if (group.imageUrl) {
+    const still = !doc.settings.motion || reducedImageMotion.matches;
+    const imageKey = (still && group.imageStill) || group.image || "";
+    const imageUrl = (still && group.imageStillUrl) || group.imageUrl;
+    if (avatar.dataset.image !== imageKey) {
+      if (imageUrl) {
         const image = document.createElement("img");
-        image.src = group.imageUrl;
+        image.src = imageUrl;
         image.alt = "";
         avatar.replaceChildren(image);
       } else avatar.innerHTML = icon("image");
-      avatar.dataset.image = group.image || "";
+      avatar.dataset.image = imageKey;
     }
   });
   const select = $("display-select"),
@@ -334,6 +357,9 @@ function sendPreview() {
     );
 }
 $("preview").onload = sendPreview;
+reducedImageMotion.addEventListener("change", () => {
+  if (current) render(current);
+});
 $("add-group").onclick = () => command("add-group");
 $("undo").onclick = () => command("undo");
 $("redo").onclick = () => command("redo");
@@ -416,10 +442,10 @@ document.addEventListener("keydown", (event) => {
   const field = event.target.closest?.(
     'input,textarea,[contenteditable="true"]',
   );
-  if (field && !field.matches(".points-input")) return;
+  if (field && !field.matches(".points-input,.points-adjustment")) return;
   event.preventDefault();
   const editor = field
-    ? scoreEditors.get(field.closest(".group-row").dataset.id)
+    ? scoreEditors.get(field)
     : null;
   if (field?.dataset.draft === "true" && !editor.busy()) {
     editor.cancel();

@@ -21,7 +21,7 @@ function scaleStage() {
 addEventListener("resize", scaleStage);
 scaleStage();
 
-function rowFor(group) {
+function rowFor(group, still) {
   let row = nodes.get(group.id);
   if (!row) {
     row = document.createElement("div");
@@ -33,21 +33,19 @@ function rowFor(group) {
     board.append(row);
   }
   const avatar = row.querySelector(".stage-avatar");
-  if (
-    avatar.dataset.image !== (group.image || "") ||
-    avatar.dataset.name !== group.name
-  ) {
+  const imageKey = (still && group.imageStill) || group.image || "";
+  const imageUrl = (still && group.imageStillUrl) || group.imageUrl;
+  if (avatar.dataset.image !== imageKey) {
     avatar.replaceChildren();
-    if (group.imageUrl) {
+    if (imageUrl) {
       const image = document.createElement("img");
-      image.src = group.imageUrl;
+      image.src = imageUrl;
       image.alt = "";
       avatar.append(image);
     } else
       avatar.innerHTML =
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m21 16-6-6L3 21"/></svg>';
-    avatar.dataset.image = group.image || "";
-    avatar.dataset.name = group.name;
+    avatar.dataset.image = imageKey;
   }
   row.querySelector(".stage-name").textContent = group.name;
   return row;
@@ -58,16 +56,27 @@ function ranked(groups) {
   return [...groups].sort((a, b) => b.points - a.points);
 }
 
+function showPoints(row, value) {
+  const element = row.querySelector(".stage-points");
+  element.textContent = formatScore(value);
+  row.querySelector(".stage-points-wrap").style.setProperty("--score-space", `${Math.ceil(element.offsetWidth * 0.35)}px`);
+}
+
 function layout(doc, animate, token) {
   const list = ranked(doc.groups);
   const count = list.length;
-  const gap = count > 20 ? 4 : count > 12 ? 7 : 11;
+  const minimumGap = count > 20 ? 4 : count > 12 ? 7 : 11;
   const leaderExtra = 0.24;
-  const rowHeight = Math.min(
-    76,
+  const maxRowHeight = 144;
+  const heightFor = (gap) => Math.min(
+    maxRowHeight,
     (board.clientHeight - gap * Math.max(0, count - 1)) /
       Math.max(1, count + leaderExtra),
   );
+  // Fill the board from about five teams upwards. With fewer teams, cap their
+  // size and leave space below. Larger rows need more room for the leader's photo.
+  const gap = Math.max(minimumGap, Math.ceil(heightFor(minimumGap) * 0.15 + 2));
+  const rowHeight = heightFor(gap);
   const width = board.clientWidth;
   const oldRects = new Map();
   // offset positions are in unscaled stage pixels, so the same motion works inside the preview.
@@ -85,14 +94,14 @@ function layout(doc, animate, token) {
   const animations = [];
   let y = 0;
   list.forEach((group, index) => {
-    const row = rowFor(group);
+    const row = rowFor(group, !doc.settings.motion || reducedMotion.matches);
     const height = rowHeight * (index === 0 ? 1 + leaderExtra : 1);
     const old = oldRects.get(group.id);
     row.style.setProperty("--row-h", `${height}px`);
     row.style.left = "0px";
     row.style.top = `${y}px`;
     row.style.width = `${width}px`;
-    row.querySelector(".stage-points").textContent = group.points;
+    showPoints(row, group.points);
     row.classList.toggle("leader", index === 0);
     const medal = ["gold", "silver", "bronze"][index];
     if (medal) row.dataset.medal = medal;
@@ -106,7 +115,7 @@ function layout(doc, animate, token) {
           },
           { transform: "translate(0,0) scaleY(1)" },
         ],
-        { duration: 680, easing: "cubic-bezier(.22,1,.36,1)" },
+        { duration: 850, easing: "cubic-bezier(.22,1,.36,1)" },
       );
       animations.push(animation.finished.catch(() => {}));
     }
@@ -137,43 +146,54 @@ async function transition(doc, token) {
         return old && old.points !== g.points && nodes.has(g.id);
       })
     : [];
-  if (motion && changes.length) {
-    await Promise.all(
-      changes.map((group) => {
-        const element = nodes.get(group.id).querySelector(".stage-points");
-        element.textContent = group.points;
-        return element
-          .animate(
-            [
-              { transform: "scale(1)", color: "#eff6ff", offset: 0 },
-              { transform: "scale(1.16)", color: "#ffdb75", offset: 0.42 },
-              { transform: "scale(1)", color: "#ffdb75", offset: 1 },
-            ],
-            {
-              duration: 460,
-              easing: "cubic-bezier(.4,0,.2,1)",
-              fill: "forwards",
-            },
-          )
-          .finished.catch(() => {});
-      }),
-    );
-    await wait(240);
-    if (token !== epoch) return;
-  }
-  const move = layout(doc, motion && !!displayed, token);
-  if (motion)
-    for (const group of changes) {
-      const element = nodes.get(group.id)?.querySelector(".stage-points");
-      if (!element) continue;
-      element.getAnimations().forEach((animation) => animation.cancel());
-      element.animate([{ color: "#ffdb75" }, { color: "#eff6ff" }], {
-        duration: 650,
-        easing: "ease-out",
-      });
+  const highlights = [];
+  const effects = [];
+  const emphasized = { transform: "scale(1.35)", color: "#ffdb60" };
+  try {
+    if (motion && changes.length) {
+      for (const group of changes) {
+        const row = nodes.get(group.id);
+        const element = row.querySelector(".stage-points");
+        row.classList.add("score-changing");
+        const normal = { transform: "scale(1)", color: getComputedStyle(element).color };
+        showPoints(row, group.points);
+        const grow = element.animate([normal, emphasized], {
+          duration: 380,
+          easing: "cubic-bezier(.22,1,.36,1)",
+          fill: "forwards",
+        });
+        highlights.push({ row, element, normal, grow });
+        effects.push(grow);
+      }
+      await Promise.all(effects.map((animation) => animation.finished.catch(() => {})));
+      if (token !== epoch) return;
+      await wait(220);
+      if (token !== epoch) return;
     }
-  await move;
-  if (token === epoch) displayed = doc;
+
+    // The grow effect holds its final frame until the row has landed.
+    await layout(doc, motion && !!displayed, token);
+    if (token !== epoch) return;
+    if (highlights.length) {
+      await wait(160);
+      if (token !== epoch) return;
+      const settling = highlights.map(({ element, normal, grow }) => {
+        const animation = element.animate([emphasized, normal], {
+          duration: 480,
+          easing: "cubic-bezier(.4,0,.2,1)",
+          fill: "forwards",
+        });
+        effects.push(animation);
+        grow.cancel();
+        return animation.finished.catch(() => {});
+      });
+      await Promise.all(settling);
+    }
+    if (token === epoch) displayed = doc;
+  } finally {
+    effects.forEach((animation) => animation.cancel());
+    highlights.forEach(({ row }) => row.classList.remove("score-changing"));
+  }
 }
 
 async function drain() {
@@ -215,11 +235,12 @@ function receive(state) {
     title: doc.title,
     subtitle: doc.subtitle,
     settings: doc.settings,
-    groups: doc.groups.map(({ id, name, points, image }) => ({
+    groups: doc.groups.map(({ id, name, points, image, imageStill }) => ({
       id,
       name,
       points,
       image,
+      imageStill,
     })),
   });
   if (nextSignature === signature) return;
@@ -239,7 +260,8 @@ function receive(state) {
     displayed = doc;
     return;
   }
-  pending.push(doc);
+  // Finish the current reveal, then show the latest total rather than building a long backlog.
+  pending = [doc];
   drain();
 }
 

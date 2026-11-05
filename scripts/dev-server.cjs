@@ -3,6 +3,8 @@ const http = require("node:http");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const { randomUUID } = require("node:crypto");
+const { prepareImage } = require("../desktop/images.cjs");
+const { normalisePoints } = require("../desktop/score-expression.cjs");
 const {
   Project,
   atomicWrite,
@@ -171,10 +173,12 @@ async function createDevServer({
       case "redo":
         if (project.redo()) await persist();
         break;
-      case "image":
-        project.addImage(payload?.id, decodeFile(payload, MAX_IMAGE));
+      case "image": {
+        const image = await prepareImage(decodeFile(payload, MAX_IMAGE));
+        project.addImage(payload?.id, image.bytes, image.poster);
         await persist();
         break;
+      }
       case "import": {
         const { readSheet } = require("read-excel-file/node");
         const rows = await readSheet(decodeFile(payload, 20 * 1024 * 1024), 1);
@@ -194,7 +198,7 @@ async function createDevServer({
           .map((row) => ({
             id: randomUUID(),
             name: String(row[nameIndex]).trim(),
-            points: pointsIndex < 0 ? 0 : Number(row[pointsIndex] || 0),
+            points: normalisePoints(pointsIndex < 0 ? 0 : Number(String(row[pointsIndex] || 0).replace(",", ".")), !!project.document.settings.allowDecimals),
             image: null,
           }));
         if (!groups.length)

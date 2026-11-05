@@ -51,26 +51,7 @@
   async function imageCopy(file) {
     if (file.size > 12 * 1024 * 1024)
       throw new Error("Bildet er for stort. Maksimalt 12 MB.");
-    let bitmap;
-    try {
-      bitmap = await createImageBitmap(file);
-    } catch {
-      throw new Error(
-        "Bildet kunne ikke åpnes. Velg et PNG-, JPEG-, WebP- eller GIF-bilde.",
-      );
-    }
-    try {
-      const ratio = Math.min(1, 1000 / Math.max(bitmap.width, bitmap.height));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, Math.round(bitmap.width * ratio));
-      canvas.height = Math.max(1, Math.round(bitmap.height * ratio));
-      canvas
-        .getContext("2d")
-        .drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-      return canvas.toDataURL("image/png").split(",")[1];
-    } finally {
-      bitmap.close();
-    }
+    return base64(file);
   }
   async function download(template = false) {
     const response = await fetch(template ? "/api/excel-template" : "/api/project");
@@ -155,7 +136,7 @@
         case "download-excel-template":
           return download(true);
         case "image": {
-          const file = await pick("image/png,image/jpeg,image/webp,image/gif");
+          const file = await pick("image/*,.jfif,.jpe,.avif,.tif,.tiff,.svg");
           if (file)
             await send("image", {
               id: payload.id,
