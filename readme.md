@@ -133,6 +133,21 @@ Byggmiljøet i denne økten avviste kjøring av den midlertidige NSIS-avinstalle
 
 Logoen er `DESIGN/logo.svg`. `npm run icons` kopierer SVG-logoen til `public/brand/` og lager gjennomsiktige, lyse appikoner i `assets/icon.png`, `assets/icon.ico` og `public/brand/icon.png`. Visuell retning er dokumentert i `assets/design.md`.
 
+## Utrulling på jobb-PC-er (signering og WDAC)
+
+Windows-byggene er usignerte så lenge det ikke er konfigurert et signeringssertifikat. I miljøer med Windows Defender Application Control (WDAC) eller AppLocker kan usignerte filer bli logget eller blokkert, fordi appens medfølgende filer (`electron.exe`, `ffmpeg.dll`, `libvips-*.dll`, `sharp-win32-*.node`) ikke oppfyller kravet til utgiversignatur. Står policyen i revisjonsmodus kjører appen og avviket bare logges; settes den til håndheving, stopper usignert kode.
+
+`npm run dist:installer` bygger en NSIS-installasjon som installerer per maskin til `Program Files` for alle brukere (`perMachine`). Den støtter stille installasjon med `/S`, slik at den kan rulles ut sentralt (for eksempel som Win32-app i et administrasjonsverktøy som Intune).
+
+For at appen skal kjøre robust i et slikt miljø må den klareres på én av disse måtene, i samråd med den som administrerer maskinene:
+
+- **Publisher-regel på signatur (mest holdbar).** Appen signeres med et code signing-sertifikat, og det legges inn en regel på utgiveren. Dekker også fremtidige versjoner uten ny godkjenning. Krever et sertifikat.
+- **Filhash- eller managed-installer-regel.** Det gjeldende bygget klareres på hash, eller sentral utrulling regnes som klarert installasjon. Krever ikke sertifikat, men en hash-regel må oppdateres ved hver nye versjon.
+
+SmartScreen er bare aktuelt for filer som lastes ned enkeltvis; ved sentral utrulling treffer man det ikke.
+
+Når et sertifikat er valgt, konfigureres signering i `electron-builder` (for eksempel via miljøvariablene `CSC_LINK` og `CSC_KEY_PASSWORD`, slik at sertifikatet ikke ligger i repoet).
+
 ## Teknisk oppsett
 
 - Electron med to isolerte, sandkassede vinduer og en begrenset preload-bro. Publikumsvinduet har lesetilgang, mens prosjektendringer bare godtas fra kontrollpanelet.
