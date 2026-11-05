@@ -184,6 +184,19 @@ function createScoreEditor(points, id, adjustment = false) {
         if (!adjustment) points.blur();
       }
     }
+    if (
+      (event.key === "ArrowUp" || event.key === "ArrowDown") &&
+      !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
+    ) {
+      event.preventDefault();
+      // Move to the same column in the neighbouring group, saving this field first.
+      if (!(await commitScore())) return;
+      const row = points.closest(".group-row");
+      const target = (event.key === "ArrowUp" ? row?.previousElementSibling : row?.nextElementSibling)
+        ?.querySelector(adjustment ? ".points-adjustment" : ".points-input");
+      target?.focus();
+      target?.select();
+    }
   };
   scoreEditors.set(points, {
     commit: commitScore,
@@ -224,6 +237,74 @@ function createRow(group) {
   };
   return row;
 }
+
+const displayPicker = $("display-select"),
+  displayList = $("display-options");
+let selectedDisplay = null,
+  displayPickedByUser = false;
+
+function chooseDisplay(id) {
+  selectedDisplay = id;
+  const display = current?.displays.find((d) => d.id === id);
+  $("display-current").textContent = display?.label ?? "Ingen skjerm funnet";
+  for (const option of displayList.children)
+    option.setAttribute("aria-selected", Number(option.dataset.id) === id);
+}
+function displayListOpen() {
+  return displayList.matches(":popover-open");
+}
+function closeDisplayList(focusPicker = true) {
+  if (displayListOpen()) displayList.hidePopover();
+  if (focusPicker) displayPicker.focus();
+}
+function placeDisplayList() {
+  const box = displayPicker.getBoundingClientRect();
+  displayList.style.left = `${box.left}px`;
+  displayList.style.width = `${box.width}px`;
+  displayList.style.top = `${box.bottom + 6}px`;
+  // Open upwards when the list would run off the bottom of the window.
+  const height = displayList.offsetHeight;
+  if (height && box.bottom + 6 + height > innerHeight - 8 && box.top - 6 - height >= 8)
+    displayList.style.top = `${box.top - 6 - height}px`;
+}
+displayList.addEventListener("beforetoggle", (event) => {
+  if (event.newState === "open") placeDisplayList();
+});
+displayList.addEventListener("toggle", (event) => {
+  const open = event.newState === "open";
+  displayPicker.setAttribute("aria-expanded", open);
+  if (!open) return;
+  placeDisplayList();
+  (displayList.querySelector('[aria-selected="true"]') || displayList.firstElementChild)?.focus();
+});
+displayPicker.addEventListener("keydown", (event) => {
+  if ((event.key === "ArrowDown" || event.key === "ArrowUp") && !displayPicker.disabled) {
+    event.preventDefault();
+    if (!displayListOpen()) displayList.showPopover();
+  }
+});
+displayList.addEventListener("click", (event) => {
+  const option = event.target.closest('[role="option"]');
+  if (!option) return;
+  displayPickedByUser = true;
+  chooseDisplay(Number(option.dataset.id));
+  closeDisplayList();
+});
+displayList.addEventListener("keydown", (event) => {
+  const options = [...displayList.children],
+    index = options.indexOf(document.activeElement);
+  const move = { ArrowDown: index + 1, ArrowUp: index - 1, Home: 0, End: options.length - 1 }[event.key];
+  if (move !== undefined) {
+    event.preventDefault();
+    options[(move + options.length) % options.length]?.focus();
+  } else if ((event.key === "Enter" || event.key === " ") && options[index]) {
+    event.preventDefault();
+    options[index].click();
+  } else if (event.key === "Escape") {
+    event.preventDefault();
+    closeDisplayList();
+  } else if (event.key === "Tab") closeDisplayList();
+});
 
 function render(state) {
   current = state;
@@ -310,19 +391,27 @@ function render(state) {
       avatar.dataset.image = imageKey;
     }
   });
-  const select = $("display-select"),
-    signature = JSON.stringify(state.displays);
-  if (select.dataset.displays !== signature) {
-    const previous = Number(select.value);
-    select.replaceChildren(
-      ...state.displays.map((display) => new Option(display.label, display.id)),
+  const signature = JSON.stringify(state.displays);
+  if (displayList.dataset.displays !== signature) {
+    closeDisplayList(displayList.contains(document.activeElement));
+    displayList.replaceChildren(
+      ...state.displays.map((display) => {
+        const option = document.createElement("div");
+        option.setAttribute("role", "option");
+        option.tabIndex = -1;
+        option.dataset.id = display.id;
+        option.innerHTML = `${icon("screen")}<span></span>`;
+        option.querySelector("span").textContent = display.label;
+        return option;
+      }),
     );
+    // Keep a screen the operator picked; otherwise prefer a newly connected external screen.
     const selected =
-      state.displays.find((d) => d.id === previous) ||
+      state.displays.find((d) => d.id === selectedDisplay && (displayPickedByUser || !d.primary)) ||
       state.displays.find((d) => !d.primary) ||
       state.displays[0];
-    if (selected) select.value = selected.id;
-    select.dataset.displays = signature;
+    chooseDisplay(selected?.id ?? null);
+    displayList.dataset.displays = signature;
   }
   $("display-help").textContent = state.isBrowser
     ? "Flytt publikumsvinduet til riktig skjerm og velg Fullskjerm."
@@ -336,7 +425,8 @@ function render(state) {
   $("finish-show").hidden = finale;
   $("finish-show").disabled = !doc.groups.some((group) => group.name.trim());
   $("back-to-board").hidden = !finale;
-  select.disabled = state.presentation.running;
+  displayPicker.disabled = state.presentation.running || !state.displays.length;
+  if (displayPicker.disabled) closeDisplayList(false);
   document.querySelectorAll("[data-mode]").forEach((button) => {
     button.classList.toggle(
       "selected",
@@ -364,9 +454,7 @@ $("add-group").onclick = () => command("add-group");
 $("undo").onclick = () => command("undo");
 $("redo").onclick = () => command("redo");
 $("start-show").onclick = () =>
-  command("start-presentation", {
-    displayId: Number($("display-select").value),
-  });
+  command("start-presentation", { displayId: selectedDisplay });
 $("stop-show").onclick = () => command("stop-presentation");
 let finishing = false;
 $("finish-show").onclick = async () => {

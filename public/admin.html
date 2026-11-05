@@ -116,8 +116,28 @@
             ></iframe>
           </div>
           <div class="show-controls">
-            <label for="display-select">Publikumsskjerm</label>
-            <select id="display-select"></select>
+            <label id="display-label">Publikumsskjerm</label>
+            <button
+              id="display-select"
+              type="button"
+              class="display-select"
+              popovertarget="display-options"
+              aria-haspopup="listbox"
+              aria-expanded="false"
+              aria-controls="display-options"
+              aria-labelledby="display-label display-current"
+            >
+              <span data-icon="screen"></span
+              ><span id="display-current"></span
+              ><span class="display-chevron" data-icon="chevron"></span>
+            </button>
+            <div
+              id="display-options"
+              class="display-options"
+              role="listbox"
+              aria-labelledby="display-label"
+              popover
+            ></div>
             <p id="display-help" class="display-help"></p>
             <div class="show-actions">
               <button id="start-show" class="button primary">

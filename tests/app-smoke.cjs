@@ -579,6 +579,25 @@ async function run() {
   assert.ok((await get(control)).document.groups.at(-1).imageUrl);
   check("reopening restores images and persistent redo history");
 
+  await js(control, "document.querySelector('#display-select').click()");
+  await until(
+    () => js(control, "document.querySelector('#display-options').matches(':popover-open') && document.activeElement.matches('#display-options [role=option][aria-selected=true]')"),
+    "screen picker opens and focuses the selected screen",
+  );
+  const picker = await js(control, `(() => {
+    const button = document.querySelector('#display-select').getBoundingClientRect();
+    const list = document.querySelector('#display-options').getBoundingClientRect();
+    return { below: list.top >= button.bottom, alignedLeft: Math.abs(list.left - button.left) < 1, sameWidth: Math.abs(list.width - button.width) < 1, expanded: document.querySelector('#display-select').getAttribute('aria-expanded'), options: document.querySelectorAll('#display-options [role=option]').length };
+  })()`);
+  assert.deepEqual(picker, { below: true, alignedLeft: true, sameWidth: true, expanded: "true", options: (await get(control)).displays.length });
+  await screenshot(control, "control-screen-picker.png");
+  await js(control, "document.activeElement.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape',bubbles:true,cancelable:true}))");
+  await until(
+    () => js(control, "!document.querySelector('#display-options').matches(':popover-open') && document.activeElement.id === 'display-select'"),
+    "Escape closes the screen picker and returns focus",
+  );
+  check("screen picker opens below its button, lists every screen and closes with Escape");
+
   state = await get(control);
   await command(control, "start-presentation", {
     displayId: state.displays[0].id,
@@ -1000,6 +1019,30 @@ async function run() {
   await command(control, "undo");
   assert.equal((await get(control)).document.groups.length, 48);
   check("existing Excel imports and can be undone");
+  const arrow = (key) =>
+    js(control, `document.activeElement.dispatchEvent(new KeyboardEvent('keydown', {key:'${key}',bubbles:true,cancelable:true}))`);
+  const focusedField = () =>
+    js(control, "(() => { const field = document.activeElement; return [[...document.querySelectorAll('.group-row')].indexOf(field.closest('.group-row')), field.className]; })()");
+  const firstGroup = (await get(control)).document.groups[0];
+  await js(control, `{
+    const field = document.querySelector('.group-row .points-input');
+    field.focus(); field.value = '${firstGroup.points + 7}';
+    field.dispatchEvent(new Event('input', {bubbles:true}));
+  }`);
+  await arrow("ArrowDown");
+  await until(async () => (await focusedField())[0] === 1, "ArrowDown moves to the next group");
+  assert.deepEqual(await focusedField(), [1, "points-input"]);
+  assert.equal((await get(control)).document.groups[0].points, firstGroup.points + 7);
+  assert.equal(await js(control, "document.activeElement.selectionStart === 0 && document.activeElement.selectionEnd === document.activeElement.value.length"), true, "the next score is selected so typing replaces it");
+  await arrow("ArrowUp");
+  await until(async () => (await focusedField())[0] === 0, "ArrowUp moves to the previous group");
+  await js(control, "document.querySelectorAll('.points-adjustment')[2].focus()");
+  await arrow("ArrowUp");
+  await until(async () => (await focusedField())[0] === 1, "ArrowUp in the change column");
+  assert.deepEqual(await focusedField(), [1, "points-adjustment"]);
+  await js(control, "document.activeElement.blur()");
+  await command(control, "undo");
+  check("arrow keys move between groups in the score columns and save the score first");
   // A backup path occupied by a directory causes the next atomic write to fail.
   // The previous project must survive, recovery must contain the latest change,
   // and a subsequent save to a working location must clear the visible error.

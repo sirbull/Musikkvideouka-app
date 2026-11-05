@@ -48,11 +48,11 @@ Testserveren er bare tilgjengelig fra denne maskinen. Det brukes ingen ekstern t
 1. Start appen fra prosjektmappen med **npm.cmd start**. Pakkede EXE-filer brukes ikke under denne testingen.
 2. Et nytt prosjekt har fem tomme grupper. Skriv gruppenavn, velg bilde med bildeikonet og skriv poengsummen i poengfeltet. **+** legger til flere grupper.
 3. Prosjektnavnet kan redigeres øverst og brukes som den lille tittelen på publikumsskjermen. **File → Nytt prosjekt** ber om navn før prosjektet opprettes. **File → Lagre** lagrer en `.mvuka`-fil; deretter lagres endringer automatisk i denne filen.
-4. Koble til projektoren, velg **Utvid** i maskinens skjerminnstillinger og velg publikumsskjermen i programmet.
+4. Koble til projektoren, velg **Utvid** i maskinens skjerminnstillinger og velg publikumsskjermen i programmet. Nye skjermer dukker opp i listen så snart de kobles til, og en ekstern skjerm velges automatisk.
 5. Klikk **Start publikumsvisning**. Med én skjerm åpnes et øvingsvindu; på en annen skjerm åpnes visningen i fullskjerm.
 6. Skriv en poengsum eller et regnestykke i poengfeltet. **Enter**, Tab eller klikk utenfor feltet beregner og lagrer resultatet automatisk. Poengsummen vokser og blir gul først, holder seg stor og gul mens raden glir til sin nye plassering, og går deretter rolig tilbake til vanlig størrelse og farge.
 
-Feltet **Endring** står til høyre for poengsummen og er tomt til du skriver noe. `5` eller `+5` legger til fem poeng, `-5` trekker fra fem, `*2` dobler summen og `/2` halverer den. Du kan også bruke parenteser og regnestykker: `2+3` legger til fem poeng. **Enter**, Tab eller klikk utenfor feltet beregner endringen én gang og tømmer feltet. Enter lar deg fortsette i samme felt. **Escape** forkaster en uferdig endring.
+Feltet **Endring** står til høyre for poengsummen og er tomt til du skriver noe. `5` eller `+5` legger til fem poeng, `-5` trekker fra fem, `*2` dobler summen og `/2` halverer den. Du kan også bruke parenteser og regnestykker: `2+3` legger til fem poeng. **Enter**, Tab eller klikk utenfor feltet beregner endringen én gang og tømmer feltet. Enter lar deg fortsette i samme felt. **↑** og **↓** lagrer feltet og går til samme kolonne i gruppen over eller under; innholdet er markert, så du kan skrive neste poengsum med en gang. **Escape** forkaster en uferdig endring.
 
 Det opprinnelige feltet **Poeng** kan fortsatt redigeres direkte, og støtter **+**, **−**, **\***, **/** og parenteser med vanlig regnerekkefølge. Eksempler i dette feltet når poengsummen er 23:
 
@@ -103,6 +103,7 @@ Maksimalt 48 grupper, 12 MB per valgt bilde og 256 MB per prosjekt. Poeng er mel
 | Ctrl+O                | Åpne prosjekt               |
 | Ctrl+N                | Nytt prosjekt               |
 | Enter i poengfelt     | Beregn og lagre poeng       |
+| ↑ / ↓ i poengfelt     | Lagre og gå til gruppen over eller under |
 
 På Mac brukes Cmd i stedet for Ctrl. Når du redigerer navn, gjelder vanlig tekstangring i feltet. I et uferdig poengfelt forkaster Ctrl+Z uttrykket. Etter bekreftelse angrer Ctrl+Z prosjektendringen. En sammenhengende navneredigering eller én poengberegning blir ett angretrinn. Knappene for angre/gjør om virker på prosjektet. Angrehistorikken følger med når prosjektet åpnes på nytt.
 

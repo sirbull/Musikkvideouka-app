@@ -195,12 +195,14 @@ function startPresentation(displayId) {
       height: external
         ? display.bounds.height
         : Math.min(700, display.workArea.height - 100),
-      fullscreen: external,
       autoHideMenuBar: true,
     },
     "publikum.html",
   );
   audienceWindow = win;
+  // A screen other than the operator's opens straight in fullscreen. Entering it after the
+  // window is shown keeps Windows from fullscreening a hidden window on the wrong display.
+  if (external) win.once("ready-to-show", () => win.setFullScreen(true));
   const fullscreenChanged = () => {
     win.setMenuBarVisibility(false);
     win.webContents.send("audience:fullscreen", win.isFullScreen());
