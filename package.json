@@ -1,22 +1,79 @@
 {
   "name": "musikkvideouka",
-  "version": "1.0.0",
-  "main": "index.js",
+  "productName": "Musikkvideouka",
+  "version": "2.0.0",
+  "main": "desktop/main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently \"node server.js\" \"npm run open:windows\"",
-    "open:windows": "sleep 2 && open http://localhost:3000/ && open http://localhost:3000/admin"
+    "start": "node scripts/start-desktop.cjs",
+    "dev": "node scripts/start-desktop.cjs",
+    "start:desktop": "node scripts/start-desktop.cjs",
+    "start:browser": "node scripts/dev-server.cjs",
+    "test": "node --test tests/*.test.js",
+    "test:app": "node scripts/run-smoke.cjs",
+    "icons": "node scripts/build-icons.cjs",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win portable",
+    "dist:installer": "electron-builder --win nsis",
+    "dist:mac": "electron-builder --mac dmg"
   },
   "keywords": [],
-  "author": "",
+  "author": "Musikkvideouka",
   "license": "ISC",
-  "description": "",
+  "description": "Poengtavle og publikumsvisning for Musikkvideouka",
   "dependencies": {
-    "express": "^4.21.2",
-    "socket.io": "^4.8.1",
-    "xlsx": "^0.18.5"
+    "fflate": "^0.8.3",
+    "read-excel-file": "^9.3.14",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "electron": "45.2.1",
+    "electron-builder": "^26.18.0",
+    "png-to-ico": "^3.0.2"
+  },
+  "build": {
+    "appId": "no.musikkvideouka.scoreboard",
+    "productName": "Musikkvideouka",
+    "directories": {
+      "output": "release",
+      "buildResources": "assets"
+    },
+    "files": [
+      "desktop/**/*",
+      "public/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "fileAssociations": [
+      {
+        "ext": "mvuka",
+        "name": "Musikkvideouka-prosjekt",
+        "role": "Editor",
+        "icon": "assets/icon.ico"
+      }
+    ],
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Musikkvideouka"
+    },
+    "mac": {
+      "icon": "assets/icon.png",
+      "category": "public.app-category.entertainment",
+      "target": "dmg",
+      "fileAssociations": [
+        {
+          "ext": "mvuka",
+          "name": "Musikkvideouka-prosjekt",
+          "role": "Editor"
+        }
+      ]
+    }
   }
 }

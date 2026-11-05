@@ -1,18 +1,10 @@
-# Dependencies
-node_modules/
-
-# Logs
-*.log
-npm-debug.log*
-
-# Environment variables
-.env
-.env.local
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Editor directories
-.vscode/
-.idea/
+node_modules
+.dev-data/
+release/
+test-results/
+outputs/
+test-results-electron.log
+*.mvuka
+*.mvuka.bak
+*.tmp
+!examples/*.mvuka
