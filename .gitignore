@@ -8,3 +8,4 @@ test-results-electron.log
 *.mvuka.bak
 *.tmp
 !examples/*.mvuka
+.DS_Store
