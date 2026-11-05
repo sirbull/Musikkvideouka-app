@@ -40,12 +40,21 @@ const enqueue = (task) => {
   return next;
 };
 
+// The screen the control panel is on: the audience opens as a window there, fullscreen elsewhere.
+function controlDisplayId() {
+  return controlWindow && !controlWindow.isDestroyed()
+    ? screen.getDisplayMatching(controlWindow.getBounds()).id
+    : screen.getPrimaryDisplay().id;
+}
+
 function displays() {
   const primary = screen.getPrimaryDisplay().id;
+  const own = controlDisplayId();
   return screen.getAllDisplays().map((d, i) => ({
     id: d.id,
     label: `${d.label || `Skjerm ${i + 1}`} · ${d.size.width} × ${d.size.height}${d.id === primary ? " (hovedskjerm)" : ""}`,
     primary: d.id === primary,
+    current: d.id === own,
   }));
 }
 
@@ -182,8 +191,7 @@ function startPresentation(displayId) {
   if (!display)
     throw new Error("Skjermen er ikke tilkoblet. Velg en skjerm på nytt.");
   if (audienceWindow && !audienceWindow.isDestroyed()) audienceWindow.close();
-  const external =
-    display.id !== screen.getDisplayMatching(controlWindow.getBounds()).id;
+  const external = display.id !== controlDisplayId();
   const win = secureWindow(
     {
       title: "Musikkvideouka · Publikum",
@@ -646,6 +654,13 @@ else {
         },
         "admin.html",
       );
+      let controlDisplay = controlDisplayId();
+      controlWindow.on("moved", () => {
+        // Moving the control panel to another screen changes which choice opens a window.
+        if (controlDisplayId() === controlDisplay) return;
+        controlDisplay = controlDisplayId();
+        broadcast();
+      });
       controlWindow.on("close", (event) => {
         if (closing) return;
         event.preventDefault();

@@ -243,10 +243,27 @@ const displayPicker = $("display-select"),
 let selectedDisplay = null,
   displayPickedByUser = false;
 
+// The control panel's own screen opens a movable window; any other screen opens fullscreen.
+function displayChoice(display) {
+  const element = document.createElement("span");
+  element.className = "display-choice";
+  const title = document.createElement("span"),
+    detail = document.createElement("small");
+  if (current.isBrowser) title.textContent = display.label;
+  else {
+    title.textContent = display.current ? "Vindu på din skjerm" : "Fullskjerm";
+    detail.textContent = display.label;
+  }
+  element.append(title, detail);
+  return element;
+}
 function chooseDisplay(id) {
   selectedDisplay = id;
   const display = current?.displays.find((d) => d.id === id);
-  $("display-current").textContent = display?.label ?? "Ingen skjerm funnet";
+  $("display-icon").innerHTML = icon(display && !display.current ? "fullscreen" : "screen");
+  $("display-current").replaceChildren(
+    display ? displayChoice(display) : "Ingen skjerm funnet",
+  );
   for (const option of displayList.children)
     option.setAttribute("aria-selected", Number(option.dataset.id) === id);
 }
@@ -395,20 +412,22 @@ function render(state) {
   if (displayList.dataset.displays !== signature) {
     closeDisplayList(displayList.contains(document.activeElement));
     displayList.replaceChildren(
-      ...state.displays.map((display) => {
-        const option = document.createElement("div");
-        option.setAttribute("role", "option");
-        option.tabIndex = -1;
-        option.dataset.id = display.id;
-        option.innerHTML = `${icon("screen")}<span></span>`;
-        option.querySelector("span").textContent = display.label;
-        return option;
-      }),
+      ...[...state.displays]
+        .sort((a, b) => !!b.current - !!a.current)
+        .map((display) => {
+          const option = document.createElement("div");
+          option.setAttribute("role", "option");
+          option.tabIndex = -1;
+          option.dataset.id = display.id;
+          option.innerHTML = icon(display.current ? "screen" : "fullscreen");
+          option.append(displayChoice(display));
+          return option;
+        }),
     );
     // Keep a screen the operator picked; otherwise prefer a newly connected external screen.
     const selected =
-      state.displays.find((d) => d.id === selectedDisplay && (displayPickedByUser || !d.primary)) ||
-      state.displays.find((d) => !d.primary) ||
+      state.displays.find((d) => d.id === selectedDisplay && (displayPickedByUser || !d.current)) ||
+      state.displays.find((d) => !d.current) ||
       state.displays[0];
     chooseDisplay(selected?.id ?? null);
     displayList.dataset.displays = signature;
@@ -416,7 +435,7 @@ function render(state) {
   $("display-help").textContent = state.isBrowser
     ? "Flytt publikumsvinduet til riktig skjerm og velg Fullskjerm."
     : state.displays.length > 1
-      ? ""
+      ? "Vinduet kan dras over til en annen skjerm. Fullskjerm åpnes direkte på den valgte skjermen."
       : "Én skjerm tilkoblet. Publikum åpnes i et eget vindu.";
   $("start-show").hidden = state.presentation.running;
   $("stop-show").hidden = !state.presentation.running;

@@ -590,6 +590,11 @@ async function run() {
     return { below: list.top >= button.bottom, alignedLeft: Math.abs(list.left - button.left) < 1, sameWidth: Math.abs(list.width - button.width) < 1, expanded: document.querySelector('#display-select').getAttribute('aria-expanded'), options: document.querySelectorAll('#display-options [role=option]').length };
   })()`);
   assert.deepEqual(picker, { below: true, alignedLeft: true, sameWidth: true, expanded: "true", options: (await get(control)).displays.length });
+  assert.equal(
+    await js(control, "document.querySelector('#display-options [role=option] .display-choice span').textContent"),
+    "Vindu på din skjerm",
+    "the control panel's own screen is offered first, as a window",
+  );
   await screenshot(control, "control-screen-picker.png");
   await js(control, "document.activeElement.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape',bubbles:true,cancelable:true}))");
   await until(
@@ -889,6 +894,9 @@ async function run() {
     () => js(audience, "!document.querySelector('#pause-overlay').hidden"),
     "pause",
   );
+  assert.match(await js(audience, "getComputedStyle(document.querySelector('#pause-overlay')).backdropFilter"), /blur/);
+  await delay(300);
+  await screenshot(audience, "audience-pause.png");
   await command(control, "presentation-mode", { mode: "black" });
   await until(
     () => js(audience, "!document.querySelector('#black-overlay').hidden"),

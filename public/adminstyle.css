@@ -431,9 +431,23 @@ body.resizing-panels * {
 #display-current {
   flex: 1;
   min-width: 0;
+}
+.display-choice {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.display-choice > span {
+  flex-shrink: 0;
+}
+.display-choice small {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 11px;
+  color: var(--muted);
 }
 .display-chevron svg {
   transform: rotate(90deg);
@@ -472,12 +486,8 @@ body.resizing-panels * {
   height: 15px;
   color: #7f9bb8;
 }
-.display-options [role="option"] span {
+.display-options .display-choice {
   flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .display-options [role="option"]:hover,
 .display-options [role="option"]:focus-visible {

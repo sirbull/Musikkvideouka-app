@@ -92,6 +92,7 @@ async function createDevServer({
         {
           id: 0,
           primary: true,
+          current: true,
           label: "Eget nettleservindu – flytt til publikumsskjermen",
         },
       ],

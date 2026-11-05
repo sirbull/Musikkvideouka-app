@@ -112,6 +112,8 @@ body {
   right: 42px;
   top: 91px;
   bottom: 35px;
+  /* Row z-indexes (rank order, raised while a score moves) stay inside the board, below overlays. */
+  z-index: 1;
   --row-h: 82px;
 }
 .stage-row {
@@ -296,7 +298,9 @@ body {
   z-index: 10;
   display: grid;
   place-items: center;
-  background: linear-gradient(115deg, #000428e0, #004e92e0);
+  /* The paused board stays faintly visible behind a blur; only the brand is sharp. */
+  background: linear-gradient(115deg, #00042899, #004e9280);
+  backdrop-filter: blur(24px) saturate(1.15);
 }
 #winner-overlay {
   position: absolute;
@@ -513,9 +517,11 @@ body {
   animation: none;
 }
 .stage-overlay h2 {
-  font-size: 32px;
-  font-weight: 500;
-  color: #dbeafa;
+  font-size: 64px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: #eef5fd;
+  text-shadow: 0 6px 30px #000a, 0 2px 8px #0006;
   margin: 0;
   max-width: 90%;
   white-space: nowrap;
@@ -526,15 +532,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
+  gap: 40px;
   max-width: 92%;
 }
 .pause-logo {
-  width: 90px;
-  height: 68px;
+  width: 168px;
+  height: 126px;
   flex-shrink: 0;
   object-fit: contain;
-  filter: brightness(0) invert(1);
+  filter: brightness(0) invert(1) drop-shadow(0 6px 26px #000a) drop-shadow(0 2px 6px #0006);
 }
 .pause-brand h2 {
   min-width: 0;
