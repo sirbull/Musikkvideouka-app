@@ -190,7 +190,8 @@ async function createDevServer({
         );
         const nameIndex = headers.indexOf("navn"),
           pointsIndex = headers.indexOf("poeng"),
-          imageIndex = headers.indexOf("bilde");
+          imageIndex = headers.indexOf("bilde"),
+          songIndex = headers.indexOf("tittel");
         if (nameIndex < 0)
           throw responseError("Første rad må inneholde kolonnen «Navn».");
         const groups = rows
@@ -199,6 +200,7 @@ async function createDevServer({
           .map((row) => ({
             id: randomUUID(),
             name: String(row[nameIndex]).trim(),
+            song: songIndex < 0 ? "" : String(row[songIndex] ?? "").trim().slice(0, 200),
             points: normalisePoints(pointsIndex < 0 ? 0 : Number(String(row[pointsIndex] || 0).replace(",", ".")), !!project.document.settings.allowDecimals),
             image: null,
           }));
@@ -216,7 +218,7 @@ async function createDevServer({
         break;
       }
       case "demo":
-        if (project.document.groups.some((g) => g.name || g.points || g.image))
+        if (project.document.groups.some((g) => g.name || g.song || g.points || g.image))
           throw responseError(
             "Opprett et tomt prosjekt før du legger til eksempelgrupper.",
           );

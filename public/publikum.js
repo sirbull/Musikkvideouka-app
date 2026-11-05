@@ -57,7 +57,7 @@ function rowFor(group, still) {
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m21 16-6-6L3 21"/></svg>';
     avatar.dataset.image = imageKey;
   }
-  row.querySelector(".stage-name").textContent = group.name;
+  row.querySelector(".stage-name").textContent = group.song ? `${group.name} – ${group.song}` : group.name;
   return row;
 }
 
@@ -160,6 +160,20 @@ async function transition(doc, token) {
   const highlights = [];
   const effects = [];
   const emphasized = { transform: "scale(1.35)", color: "#ffdb60" };
+  // The whole row also grows a little around its centre. It is added on top of the
+  // rank move's transform, so the row stays enlarged while it glides to its new place.
+  const rowScale = (scale) => ({ transform: `translate(50%, 50%) scale(${scale}) translate(-50%, -50%)` });
+  const emphasizeRow = (row, from, to, duration, easing) => {
+    const animation = row.animate([rowScale(from), rowScale(to)], {
+      duration,
+      easing,
+      fill: "forwards",
+      composite: "add",
+    });
+    animation.id = "row-emphasis";
+    effects.push(animation);
+    return animation;
+  };
   try {
     if (motion && changes.length) {
       for (const group of changes) {
@@ -173,7 +187,8 @@ async function transition(doc, token) {
           easing: "cubic-bezier(.22,1,.36,1)",
           fill: "forwards",
         });
-        highlights.push({ row, element, normal, grow });
+        const rowGrow = emphasizeRow(row, 1, 1.04, 380, "cubic-bezier(.22,1,.36,1)");
+        highlights.push({ row, element, normal, grow, rowGrow });
         effects.push(grow);
       }
       await Promise.all(effects.map((animation) => animation.finished.catch(() => {})));
@@ -183,20 +198,30 @@ async function transition(doc, token) {
     }
 
     // The grow effect holds its final frame until the row has landed.
-    await layout(doc, motion && !!displayed, token);
+    const moved = layout(doc, motion && !!displayed, token);
+    // layout() starts the rank moves synchronously and they replace the row transform.
+    // Re-applying the enlargement after them keeps it on top for the whole move.
+    for (const highlight of highlights) {
+      const hold = emphasizeRow(highlight.row, 1.04, 1.04, 1, "linear");
+      highlight.rowGrow.cancel();
+      highlight.rowGrow = hold;
+    }
+    await moved;
     if (token !== epoch) return;
     if (highlights.length) {
       await wait(160);
       if (token !== epoch) return;
-      const settling = highlights.map(({ element, normal, grow }) => {
+      const settling = highlights.map(({ row, element, normal, grow, rowGrow }) => {
         const animation = element.animate([emphasized, normal], {
           duration: 480,
           easing: "cubic-bezier(.4,0,.2,1)",
           fill: "forwards",
         });
+        const rowSettle = emphasizeRow(row, 1.04, 1, 480, "cubic-bezier(.4,0,.2,1)");
         effects.push(animation);
         grow.cancel();
-        return animation.finished.catch(() => {});
+        rowGrow.cancel();
+        return Promise.all([animation.finished, rowSettle.finished]).catch(() => {});
       });
       await Promise.all(settling);
     }
@@ -246,9 +271,10 @@ function receive(state) {
     title: doc.title,
     subtitle: doc.subtitle,
     settings: doc.settings,
-    groups: doc.groups.map(({ id, name, points, image, imageStill }) => ({
+    groups: doc.groups.map(({ id, name, song, points, image, imageStill }) => ({
       id,
       name,
+      song,
       points,
       image,
       imageStill,

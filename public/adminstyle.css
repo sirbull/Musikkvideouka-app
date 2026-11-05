@@ -176,10 +176,10 @@ input::placeholder {
   flex-direction: column;
 }
 .workspace-grid {
-  --min-groups-width: 360px;
+  --min-groups-width: 440px;
   --min-preview-width: 280px;
   display: grid;
-  grid-template-columns: var(--groups-width, minmax(360px, 1.05fr)) 22px minmax(
+  grid-template-columns: var(--groups-width, minmax(440px, 1.05fr)) 22px minmax(
       280px,
       1fr
     );
@@ -245,14 +245,14 @@ body.resizing-panels * {
 }
 .table-heading {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px 88px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 96px 88px;
   column-gap: 8px;
   padding: 0 46px 6px 69px;
   color: var(--muted);
   font-size: 11px;
   flex-shrink: 0;
 }
-.table-heading span:not(:first-child) {
+.table-heading span:nth-child(n + 3) {
   text-align: center;
 }
 #groups {
@@ -264,7 +264,7 @@ body.resizing-panels * {
 }
 .group-row {
   display: grid;
-  grid-template-columns: 16px 28px minmax(50px, 1fr) 96px 88px 24px;
+  grid-template-columns: 16px 28px minmax(50px, 1fr) minmax(50px, 1fr) 96px 88px 24px;
   align-items: center;
   gap: 8px;
   min-height: 40px;
@@ -321,12 +321,14 @@ body.resizing-panels * {
 .group-avatar:hover .photo-hover {
   display: grid;
 }
-.group-name {
+.group-name,
+.group-song {
   width: 100%;
   min-width: 0;
   height: 28px;
   padding: 4px 8px;
   font-size: 13px;
+  text-overflow: ellipsis;
 }
 .points-input,
 .points-adjustment {
@@ -723,7 +725,7 @@ dialog p {
   }
   .workspace-grid {
     grid-template-columns:
-      var(--groups-width, minmax(360px, 1.05fr))
+      var(--groups-width, minmax(440px, 1.05fr))
       22px minmax(280px, 1fr);
   }
   .save-status {

@@ -44,6 +44,8 @@ function validateDocument(doc) {
     if (!g.id || ids.has(g.id)) fail("Gruppene må ha unike ID-er.");
     ids.add(g.id);
     text(g.name, 100, "gruppenavn");
+    // Projects from before song titles existed have no song field.
+    if (g.song !== undefined) text(g.song, 200, "tittel");
     if (normalisePoints(g.points, !!doc.settings.allowDecimals) !== g.points)
       fail("Poeng kan ha maksimalt seks desimaler.");
     if (
@@ -105,6 +107,7 @@ class Project {
       groups: Array.from({ length: 5 }, () => ({
         id: randomUUID(),
         name: "",
+        song: "",
         points: 0,
         image: null,
       })),
@@ -154,6 +157,7 @@ class Project {
           doc.groups.push({
             id: randomUUID(),
             name: payload.name ?? "",
+            song: payload.song ?? "",
             points: 0,
             image: null,
           });
@@ -171,6 +175,16 @@ class Project {
           },
           typeof payload.editId === "string"
             ? `name:${payload.id}:${text(payload.editId, 100, "redigerings-ID")}`
+            : null,
+        );
+      case "song-title":
+        return this.edit(
+          "Endre tittel",
+          (doc) => {
+            groupIn(doc).song = text(payload.song, 200, "tittel").trim();
+          },
+          typeof payload.editId === "string"
+            ? `song:${payload.id}:${text(payload.editId, 100, "redigerings-ID")}`
             : null,
         );
       case "points":

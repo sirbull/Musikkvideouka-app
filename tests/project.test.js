@@ -28,6 +28,23 @@ test("new named projects start with five genuinely empty groups and no undo hist
   assert.throws(() => Project.create("  "), /prosjektnavn/);
 });
 
+test("song titles are a separate field, merge typing into one undo step, and older projects without them still open", async () => {
+  const project = Project.create("Show");
+  const id = project.document.groups[0].id;
+  for (const song of ["Ne", "Neon nights  "])
+    project.apply("song-title", { id, song, editId: "song-edit" });
+  assert.equal(project.document.groups[0].song, "Neon nights");
+  assert.equal(project.document.groups[0].name, "");
+  assert.equal(project.past.length, 1);
+  assert.equal(project.view().undoLabel, "Endre tittel");
+  assert.throws(() => project.apply("song-title", { id, song: "x".repeat(201) }), /tittel/);
+  const restored = Project.decode(await project.encode());
+  assert.equal(restored.document.groups[0].song, "Neon nights");
+  const older = structuredClone(project.document);
+  for (const group of older.groups) delete group.song;
+  assert.equal(new Project(older).document.groups[0].song, undefined);
+});
+
 test("typing an absolute score and project name merges into one undo step per field edit", async () => {
   const project = Project.create("Show");
   const id = project.document.groups[0].id;

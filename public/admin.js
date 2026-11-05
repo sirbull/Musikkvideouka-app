@@ -210,14 +210,23 @@ function createRow(group) {
   const row = document.createElement("div");
   row.className = "group-row";
   row.dataset.id = group.id;
-  row.innerHTML = `<span class="group-index"></span><button class="group-avatar" title="Velg bilde"><span class="avatar-content"></span><span class="photo-hover">${icon("image")}</span></button><input class="group-name" maxlength="100" autocomplete="off"><input class="points-input" type="text" inputmode="text" maxlength="120" autocomplete="off" spellcheck="false"><input class="points-adjustment" type="text" inputmode="text" maxlength="120" autocomplete="off" spellcheck="false"><button class="delete-group" title="Slett gruppe">${icon("trash")}</button>`;
+  row.innerHTML = `<span class="group-index"></span><button class="group-avatar" title="Velg bilde"><span class="avatar-content"></span><span class="photo-hover">${icon("image")}</span></button><input class="group-name" maxlength="100" autocomplete="off"><input class="group-song" maxlength="200" autocomplete="off"><input class="points-input" type="text" inputmode="text" maxlength="120" autocomplete="off" spellcheck="false"><input class="points-adjustment" type="text" inputmode="text" maxlength="120" autocomplete="off" spellcheck="false"><button class="delete-group" title="Slett gruppe">${icon("trash")}</button>`;
   const name = row.querySelector(".group-name");
   let nameEdit = crypto.randomUUID();
   name.onfocus = () => { nameEdit = crypto.randomUUID(); };
   name.oninput = () => command("rename-group", { id: group.id, name: name.value, editId: nameEdit });
-  name.onkeydown = (event) => {
-    if (event.key === "Enter") { event.preventDefault(); name.blur(); }
+  const song = row.querySelector(".group-song");
+  let songEdit = crypto.randomUUID();
+  song.onfocus = () => { songEdit = crypto.randomUUID(); };
+  song.oninput = () => command("song-title", { id: group.id, song: song.value, editId: songEdit });
+  // A title cut off with … is shown in full in the tooltip.
+  song.onmouseenter = () => {
+    song.title = song.scrollWidth > song.clientWidth ? song.value : "";
   };
+  for (const field of [name, song])
+    field.onkeydown = (event) => {
+      if (event.key === "Enter") { event.preventDefault(); field.blur(); }
+    };
   createScoreEditor(row.querySelector(".points-input"), group.id);
   createScoreEditor(row.querySelector(".points-adjustment"), group.id, true);
   row.querySelector(".group-avatar").onclick = () =>
@@ -373,6 +382,10 @@ function render(state) {
     const name = row.querySelector(".group-name"),
       points = row.querySelector(".points-input");
     if (document.activeElement !== name) name.value = group.name;
+    const song = row.querySelector(".group-song");
+    if (document.activeElement !== song) song.value = group.song || "";
+    song.placeholder = "Tittel";
+    song.setAttribute("aria-label", `Tittel for ${group.name || "gruppe " + (index + 1)}`);
     if (document.activeElement !== points && points.dataset.draft !== "true")
       showScoreValue(points, group.points);
     name.placeholder = `Gruppenavn ${index + 1}`;
@@ -436,7 +449,7 @@ function render(state) {
     ? "Flytt publikumsvinduet til riktig skjerm og velg Fullskjerm."
     : state.displays.length > 1
       ? "Vinduet kan dras over til en annen skjerm. Fullskjerm åpnes direkte på den valgte skjermen."
-      : "Én skjerm tilkoblet. Publikum åpnes i et eget vindu.";
+      : "Én skjerm tilkoblet. Ser du ikke den eksterne skjermen? Trykk Windows + P og velg Utvid.";
   $("start-show").hidden = state.presentation.running;
   $("stop-show").hidden = !state.presentation.running;
   $("presentation-modes").hidden = !state.presentation.running;

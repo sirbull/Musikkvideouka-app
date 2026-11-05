@@ -756,12 +756,12 @@ async function run() {
     "score grows and becomes yellow before the row moves",
   );
   await until(
-    () => js(audience, `document.querySelector('[data-id="${runner.id}"]').getAnimations().some(a => a.effect.getKeyframes().some(frame => frame.transform) && a.playState === 'running')`),
+    () => js(audience, `document.querySelector('[data-id="${runner.id}"]').getAnimations().some(a => a.id !== 'row-emphasis' && a.effect.getKeyframes().some(frame => frame.transform) && a.playState === 'running')`),
     "row starts moving after score emphasis",
   );
   await js(audience, `{
     const movingRow = document.querySelector('[data-id="${runner.id}"]');
-    window.capturedRankMove = movingRow.getAnimations().find(a => a.effect.getKeyframes().some(frame => frame.transform));
+    window.capturedRankMove = movingRow.getAnimations().find(a => a.id !== 'row-emphasis' && a.effect.getKeyframes().some(frame => frame.transform));
     window.capturedRankMove.pause();
     window.capturedRankMove.currentTime = window.capturedRankMove.effect.getTiming().duration / 2;
   }`);
@@ -770,13 +770,16 @@ async function run() {
     const score = row.querySelector('.stage-points');
     const style = getComputedStyle(score);
     const rect = score.getBoundingClientRect();
+    const rowBox = row.getBoundingClientRect();
     return { scale: new DOMMatrixReadOnly(style.transform).a, color: style.color,
+      rowEnlarged: rowBox.width > row.offsetWidth * document.querySelector('#stage').getBoundingClientRect().width / document.querySelector('#stage').offsetWidth * 1.03,
       clearOfName: rect.left > row.querySelector('.stage-name').getBoundingClientRect().right,
       clearOfUnit: rect.right < row.querySelector('.stage-unit').getBoundingClientRect().left };
   })()`);
   assert.ok(movingScore.scale >= 1.34);
   assert.equal(movingScore.color, "rgb(255, 219, 96)");
   assert.ok(movingScore.clearOfName && movingScore.clearOfUnit);
+  assert.ok(movingScore.rowEnlarged, "the whole row is enlarged while it moves");
   await screenshot(audience, "audience-score-moving.png");
   await js(audience, "window.capturedRankMove.play()");
   await until(
@@ -795,10 +798,10 @@ async function run() {
     0,
   );
   await until(
-    () => js(audience, `(() => { const score=document.querySelector('[data-id="${runner.id}"] .stage-points'); return score.getAnimations().length === 0 && getComputedStyle(score).transform === 'none' && getComputedStyle(score).color === 'rgb(255, 255, 255)'; })()`),
-    "score returns to normal only after the move",
+    () => js(audience, `(() => { const score=document.querySelector('[data-id="${runner.id}"] .stage-points'); return score.getAnimations().length === 0 && getComputedStyle(score).transform === 'none' && getComputedStyle(score).color === 'rgb(255, 255, 255)' && score.closest('.stage-row').getAnimations().length === 0; })()`),
+    "score and row return to normal only after the move",
   );
-  check("score grows before moving, stays large and yellow throughout the move without overlapping text, then returns to normal");
+  check("score and row grow before moving, stay large (score yellow) throughout the move without overlapping text, then return to normal");
 
   await Promise.all(Array.from({ length: 4 }, () => command(control, "points", { id: runner.id, delta: 1 })));
   await until(
@@ -818,6 +821,24 @@ async function run() {
     ),
     true,
   );
+  const longSong = "En veldig lang tittel som aldri ser ut til å ta slutt, uansett hvor bred skjermen er";
+  await js(control, `{
+    const field = document.querySelector('[data-id="${group.id}"] .group-song');
+    field.focus();
+    field.value = ${JSON.stringify(longSong)};
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    field.blur();
+  }`);
+  const winnerName = (await get(control)).document.groups.find((g) => g.id === group.id).name;
+  await until(
+    () => js(audience, `document.querySelector('[data-id="${group.id}"] .stage-name').textContent === ${JSON.stringify(`${winnerName} – ${longSong}`)}`),
+    "the scoreboard shows group name and song title on one line",
+  );
+  assert.equal(await js(control, `(() => {
+    const field = document.querySelector('[data-id="${group.id}"] .group-song');
+    field.dispatchEvent(new MouseEvent('mouseenter'));
+    return field.title === ${JSON.stringify(longSong)} && getComputedStyle(field).textOverflow === 'ellipsis';
+  })()`), true, "a cut-off song title shows in full on hover");
   const beforeFinale = await get(control);
   const originalWinnerPoints = beforeFinale.document.groups.find((g) => g.id === group.id).points;
   const originalRunnerPoints = beforeFinale.document.groups.find((g) => g.id === runner.id).points;
@@ -849,6 +870,13 @@ async function run() {
     return silver.right < gold.left && bronze.left > gold.right && silver.width < gold.width && bronze.width < gold.width;
   })()`), true);
   assert.equal(await js(control, `document.querySelector('#preview').contentDocument.querySelector('#podium-second').dataset.groupId === '${runner.id}'`), true);
+  assert.deepEqual(await js(audience, `(() => {
+    const name = document.querySelector('#winner-name').getBoundingClientRect();
+    const song = document.querySelector('#winner-song');
+    return { text: song.textContent, below: song.getBoundingClientRect().top >= name.bottom - 1,
+      oneLine: song.offsetHeight < 60, cutOff: song.scrollWidth > song.clientWidth, title: song.title,
+      runnerSongHidden: document.querySelector('#podium-second .podium-song').hidden };
+  })()`), { text: longSong, below: true, oneLine: true, cutOff: true, title: longSong, runnerSongHidden: true });
   await until(
     () => js(audience, "!!document.querySelector('#winner-portrait img')?.complete && document.querySelector('#winner-portrait img').naturalWidth > 0"),
     "winner photo loaded",

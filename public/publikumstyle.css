@@ -478,6 +478,23 @@ body {
   margin: 32px 0 16px;
   text-shadow: 0 4px 24px #0005;
 }
+.winner-song,
+.podium-song {
+  max-width: 100%;
+  margin: -6px 0 18px;
+  color: #d5e4f5;
+  font-size: 30px;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 3px 18px #0005;
+}
+.podium-song {
+  margin: -4px 0 14px;
+  color: #c5d5e8;
+  font-size: 22px;
+}
 .winner-score {
   margin: 0;
   display: flex;

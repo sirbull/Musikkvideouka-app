@@ -127,7 +127,7 @@ async function keepUntitled() {
   if (
     !project.past.length &&
     !project.future.length &&
-    project.document.groups.every((g) => !g.name && !g.points && !g.image)
+    project.document.groups.every((g) => !g.name && !g.song && !g.points && !g.image)
   )
     return true;
   const answer = await dialog.showMessageBox(controlWindow, {
@@ -302,9 +302,10 @@ async function importExcel() {
   const nameColumn = headers.indexOf("navn");
   const pointsColumn = headers.indexOf("poeng");
   const imageColumn = headers.indexOf("bilde");
+  const songColumn = headers.indexOf("tittel");
   if (nameColumn < 0)
     throw new Error(
-      "Første rad må inneholde kolonnen «Navn». Valgfrie kolonner er «Poeng» og «Bilde».",
+      "Første rad må inneholde kolonnen «Navn». Valgfrie kolonner er «Tittel», «Poeng» og «Bilde».",
     );
   const groups = [];
   const assets = {};
@@ -315,6 +316,7 @@ async function importExcel() {
     const group = {
       id: randomUUID(),
       name: String(row[nameColumn]).trim(),
+      song: songColumn < 0 ? "" : String(row[songColumn] ?? "").trim().slice(0, 200),
       points: normalisePoints(pointsColumn < 0 ? 0 : Number(String(row[pointsColumn] || 0).replace(",", ".")), !!project.document.settings.allowDecimals),
       image: null,
     };
@@ -425,7 +427,7 @@ async function runCommand(action, payload) {
       break;
     }
     case "demo": {
-      if (project.document.groups.some((g) => g.name || g.points || g.image))
+      if (project.document.groups.some((g) => g.name || g.song || g.points || g.image))
         throw new Error(
           "Opprett et tomt prosjekt før du legger inn eksempelgrupper.",
         );
@@ -740,11 +742,19 @@ else {
           return { ok: false, error: error.message };
         }
       });
-      screen.on("display-added", broadcast);
-      screen.on("display-metrics-changed", broadcast);
+      // Windows reports a new screen before it has finished configuring it, so the list is
+      // published again once the change has settled.
+      let displaysSettled = null;
+      const displaysChanged = () => {
+        broadcast();
+        clearTimeout(displaysSettled);
+        displaysSettled = setTimeout(broadcast, 1500);
+      };
+      screen.on("display-added", displaysChanged);
+      screen.on("display-metrics-changed", displaysChanged);
       screen.on("display-removed", (_event, display) => {
         if (presentation.displayId === display.id) audienceWindow?.close();
-        broadcast();
+        displaysChanged();
       });
       buildMenu();
       // A disconnected drive or read-only project must not prevent recovery from opening.

@@ -82,12 +82,20 @@
     }
   }
 
+  // The song title sits on one line under the name and ends with … when it does not fit.
+  function showSong(element, group) {
+    element.textContent = group.song || "";
+    element.title = group.song || "";
+    element.hidden = !group.song;
+  }
+
   function show(group, index, count, motion) {
     fillPortrait(portrait, group, motion);
     document.getElementById("winner-label").textContent = count > 1 ? "Delt førsteplass" : "Vinner";
     const name = document.getElementById("winner-name");
     name.textContent = group.name;
     name.style.fontSize = group.name.length > 65 ? "32px" : group.name.length > 40 ? "38px" : group.name.length > 22 ? "48px" : "68px";
+    showSong(document.getElementById("winner-song"), group);
     document.getElementById("winner-points").textContent = formatScore(group.points);
     const counter = document.getElementById("winner-counter");
     counter.hidden = count === 1;
@@ -101,7 +109,7 @@
         { opacity: 1, transform: "translateY(0) scale(1.04) rotate(1deg)", offset: 0.72 },
         { opacity: 1, transform: "translateY(0) scale(1) rotate(0)" },
       ], { duration: 1100, easing: "cubic-bezier(.22,1,.36,1)" });
-      for (const [index, element] of [...overlay.querySelectorAll(".winner-label,.winner-name,.winner-score,.winner-counter")].entries())
+      for (const [index, element] of [...overlay.querySelectorAll(".winner-label,.winner-name,.winner-song,.winner-score,.winner-counter")].entries())
         element.animate([
           { opacity: 0, transform: "translateY(20px)" },
           { opacity: 1, transform: "translateY(0)" },
@@ -123,6 +131,7 @@
     const name = element.querySelector(".podium-name");
     name.textContent = group.name;
     name.style.fontSize = group.name.length > 50 ? "26px" : group.name.length > 25 ? "32px" : "40px";
+    showSong(element.querySelector(".podium-song"), group);
     element.querySelector(".podium-points").textContent = formatScore(group.points);
     const counter = element.querySelector(".podium-counter");
     counter.hidden = groups.length < 2;
@@ -148,7 +157,7 @@
       active = active && winners.length > 0;
       document.getElementById("stage").classList.toggle("winner-active", active);
       overlay.hidden = !active;
-      const next = active ? JSON.stringify([doc.id, motion, places.map((groups) => groups.map(({ id, name, points, image, imageStill }) => [id, name, points, image, imageStill]))]) : null;
+      const next = active ? JSON.stringify([doc.id, motion, places.map((groups) => groups.map(({ id, name, song, points, image, imageStill }) => [id, name, song, points, image, imageStill]))]) : null;
       if (next === signature) return;
       signature = next;
       stop();
