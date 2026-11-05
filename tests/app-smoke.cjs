@@ -490,6 +490,30 @@ async function run() {
     "audience load",
   );
   const audience = windows[1];
+  await assert.rejects(js(control, "window.musikk.getFullscreen()"), /Ingen tilgang/);
+  await until(
+    () => js(audience, "!document.querySelector('#audience-fullscreen').hidden"),
+    "fullscreen button visible in audience window",
+  );
+  assert.equal(
+    await js(control, "document.querySelector('#preview').contentDocument.querySelector('#audience-fullscreen').hidden"),
+    true,
+  );
+  await js(audience, "document.querySelector('#audience-fullscreen').click()");
+  await until(() => audience.isFullScreen(), "native audience fullscreen");
+  await until(
+    () => js(audience, "document.querySelector('#audience-fullscreen').hidden"),
+    "fullscreen button hides during presentation",
+  );
+  assert.equal(audience.isMenuBarVisible(), false);
+  audience.webContents.sendInputEvent({ type: "keyDown", keyCode: "Escape" });
+  audience.webContents.sendInputEvent({ type: "keyUp", keyCode: "Escape" });
+  await until(() => !audience.isFullScreen(), "Escape exits native fullscreen");
+  await until(
+    () => js(audience, "!document.querySelector('#audience-fullscreen').hidden"),
+    "fullscreen button returns after Escape",
+  );
+  check("audience button enters native fullscreen, hides the menu and itself, and Escape restores the window; preview stays clean");
   const fullWidthRows = await js(
     audience,
     "[...document.querySelectorAll('.stage-row')].every(row => row.offsetLeft === 0 && Math.abs(row.offsetWidth - document.querySelector('#board').clientWidth) <= 1)",
@@ -626,6 +650,18 @@ async function run() {
     "winner preview matches the audience",
   );
   assert.equal((await get(control)).document.groups.find((g) => g.id === group.id).points, 507);
+  const thirdId = state.document.groups[0].id;
+  await until(
+    () => js(audience, `document.querySelector('#podium-second').dataset.groupId === '${runner.id}' && document.querySelector('#podium-third').dataset.groupId === '${thirdId}'`),
+    "silver and bronze show the correct runners-up",
+  );
+  assert.equal(await js(audience, `(() => {
+    const gold = document.querySelector('#winner-portrait').getBoundingClientRect();
+    const silver = document.querySelector('#podium-second .podium-portrait').getBoundingClientRect();
+    const bronze = document.querySelector('#podium-third .podium-portrait').getBoundingClientRect();
+    return silver.right < gold.left && bronze.left > gold.right && silver.width < gold.width && bronze.width < gold.width;
+  })()`), true);
+  assert.equal(await js(control, `document.querySelector('#preview').contentDocument.querySelector('#podium-second').dataset.groupId === '${runner.id}'`), true);
   await until(
     () => js(audience, "!!document.querySelector('#winner-portrait img')?.complete && document.querySelector('#winner-portrait img').naturalWidth > 0"),
     "winner photo loaded",
@@ -647,6 +683,7 @@ async function run() {
     () => js(audience, "document.querySelector('#winner-label').textContent === 'Delt førsteplass' && document.querySelector('#winner-counter').textContent === '1 av 2' && !!document.querySelector('#winner-portrait svg')"),
     "tied winners and missing photo fallback",
   );
+  assert.equal(await js(audience, `document.querySelector('#podium-second').hidden && document.querySelector('#podium-third').dataset.groupId === '${thirdId}'`), true);
   await until(
     () => js(audience, `document.querySelector('#winner-overlay').dataset.winnerId === '${group.id}' && document.querySelector('#winner-counter').textContent === '2 av 2'`),
     "both tied winners get their turn",
@@ -675,6 +712,7 @@ async function run() {
     () => js(audience, "!document.querySelector('#black-overlay').hidden"),
     "black",
   );
+  assert.equal(await js(audience, "document.querySelector('#audience-fullscreen').hidden"), true);
   await command(control, "presentation-mode", { mode: "scoreboard" });
   await command(control, "motion", { enabled: false });
   await until(
@@ -708,8 +746,19 @@ async function run() {
     true,
   );
   await screenshot(audience, "audience-one-group.png");
-  for (const item of names.slice(1, 3))
-    await command(control, "rename-group", item);
+  await command(control, "presentation-mode", { mode: "winner" });
+  await until(
+    () => js(audience, "!document.querySelector('#winner-overlay').hidden && document.querySelector('#podium-second').hidden && document.querySelector('#podium-third').hidden"),
+    "one-team finale hides both unused places",
+  );
+  await command(control, "rename-group", names[1]);
+  await until(
+    () => js(audience, "!document.querySelector('#podium-second').hidden && document.querySelector('#podium-third').hidden"),
+    "two-team finale only shows first and second",
+  );
+  await command(control, "presentation-mode", { mode: "scoreboard" });
+  await command(control, "rename-group", names[2]);
+  check("finale podium ranks correctly, keeps the winner largest in the center, respects ties and omits missing places");
   await command(control, "motion", { enabled: true });
   await until(
     () => js(audience, "document.querySelectorAll('.stage-row').length === 3"),

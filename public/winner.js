@@ -12,6 +12,7 @@
     frame = null;
     context.clearRect(0, 0, canvas.width, canvas.height);
     [...overlay.getAnimations(), ...overlay.querySelector(".winner-content").getAnimations({ subtree: true })]
+      .filter((animation) => !(animation instanceof CSSAnimation))
       .forEach((animation) => animation.cancel());
   }
 
@@ -64,27 +65,31 @@
     frame = requestAnimationFrame(draw);
   }
 
-  function show(group, index, count, motion) {
-    portrait.replaceChildren();
+  function fillPortrait(element, group) {
+    element.replaceChildren();
     if (group.imageUrl) {
       const image = document.createElement("img");
       image.src = group.imageUrl;
       image.alt = "";
-      portrait.append(image);
+      element.append(image);
     } else {
-      portrait.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M8 3h8v7a4 4 0 0 1-8 0ZM8 5H4v3a4 4 0 0 0 4 4M16 5h4v3a4 4 0 0 1-4 4M12 14v7M8 21h8"/></svg>';
+      element.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path d="M8 3h8v7a4 4 0 0 1-8 0ZM8 5H4v3a4 4 0 0 0 4 4M16 5h4v3a4 4 0 0 1-4 4M12 14v7M8 21h8"/></svg>';
     }
+  }
+
+  function show(group, index, count, motion) {
+    fillPortrait(portrait, group);
     document.getElementById("winner-label").textContent = count > 1 ? "Delt førsteplass" : "Vinner";
     const name = document.getElementById("winner-name");
     name.textContent = group.name;
-    name.style.fontSize = group.name.length > 60 ? "40px" : group.name.length > 35 ? "50px" : "68px";
+    name.style.fontSize = group.name.length > 65 ? "32px" : group.name.length > 40 ? "38px" : group.name.length > 22 ? "48px" : "68px";
     document.getElementById("winner-points").textContent = group.points;
     const counter = document.getElementById("winner-counter");
     counter.hidden = count === 1;
     counter.textContent = `${index + 1} av ${count}`;
     overlay.dataset.winnerId = group.id;
     if (motion) {
-      for (const animation of overlay.querySelector(".winner-content").getAnimations({ subtree: true }))
+      for (const animation of document.getElementById("winner-main").getAnimations({ subtree: true }))
         animation.cancel();
       portrait.animate([
         { opacity: 0, transform: "translateY(35px) scale(.72) rotate(-5deg)" },
@@ -99,29 +104,67 @@
     }
   }
 
+  function showSide(element, groups, index, motion) {
+    element.hidden = groups.length === 0;
+    if (!groups.length) {
+      delete element.dataset.groupId;
+      return;
+    }
+    const group = groups[index];
+    element.dataset.groupId = group.id;
+    fillPortrait(element.querySelector(".podium-portrait"), group);
+    element.querySelector(".podium-label").textContent =
+      `${groups.length > 1 ? "Delt " : ""}${element.dataset.place}. plass`;
+    const name = element.querySelector(".podium-name");
+    name.textContent = group.name;
+    name.style.fontSize = group.name.length > 50 ? "26px" : group.name.length > 25 ? "32px" : "40px";
+    element.querySelector(".podium-points").textContent = group.points;
+    const counter = element.querySelector(".podium-counter");
+    counter.hidden = groups.length < 2;
+    counter.textContent = `${index + 1} av ${groups.length}`;
+    if (motion)
+      element.animate([
+        { opacity: 0, transform: "translateY(30px)" },
+        { opacity: 1, transform: "translateY(0)" },
+      ], { duration: 900, delay: 450, fill: "backwards", easing: "cubic-bezier(.22,1,.36,1)" });
+  }
+
   window.winnerFinale = {
     render(doc, active, motion) {
-      const eligible = doc.groups.filter((group) => group.name.trim());
-      const highest = Math.max(...eligible.map((group) => group.points));
-      const winners = eligible.filter((group) => group.points === highest);
+      const eligible = doc.groups.filter((group) => group.name.trim()).sort((a, b) => b.points - a.points);
+      const places = [[], [], []];
+      let rank = 1;
+      eligible.forEach((group, index) => {
+        // Shared places consume their positions: two winners are followed by third place.
+        if (index && group.points !== eligible[index - 1].points) rank = index + 1;
+        if (rank <= 3) places[rank - 1].push(group);
+      });
+      const [winners, second, third] = places;
       active = active && winners.length > 0;
       document.getElementById("stage").classList.toggle("winner-active", active);
       overlay.hidden = !active;
-      const next = active ? JSON.stringify([doc.id, motion, winners.map(({ id, name, points, image }) => [id, name, points, image])]) : null;
+      const next = active ? JSON.stringify([doc.id, motion, places.map((groups) => groups.map(({ id, name, points, image }) => [id, name, points, image]))]) : null;
       if (next === signature) return;
       signature = next;
       stop();
       if (!active) return;
       let index = 0;
       show(winners[0], index, winners.length, motion);
+      const silver = document.getElementById("podium-second");
+      const bronze = document.getElementById("podium-third");
+      showSide(silver, second, 0, motion);
+      showSide(bronze, third, 0, motion);
       if (motion) {
         overlay.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: "ease-out" });
         confetti();
       }
-      if (winners.length > 1)
+      if (places.some((groups) => groups.length > 1))
         rotation = setInterval(() => {
-          index = (index + 1) % winners.length;
-          show(winners[index], index, winners.length, motion);
+          index++;
+          if (winners.length > 1)
+            show(winners[index % winners.length], index % winners.length, winners.length, motion);
+          if (second.length > 1) showSide(silver, second, index % second.length, motion);
+          if (third.length > 1) showSide(bronze, third, index % third.length, motion);
         }, 6000);
     },
   };

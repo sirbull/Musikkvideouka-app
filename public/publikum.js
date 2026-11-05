@@ -116,7 +116,11 @@ function layout(doc, animate, token) {
 }
 
 function headings(doc) {
-  document.getElementById("stage-title").textContent = doc.title;
+  const title = document.getElementById("stage-title");
+  title.textContent = doc.title;
+  title.style.fontSize = "";
+  if (title.scrollWidth > title.clientWidth)
+    title.style.fontSize = `${Math.max(18, 27 * title.clientWidth / title.scrollWidth)}px`;
   document.getElementById("pause-title").textContent = doc.title;
   stage.classList.toggle(
     "no-motion",

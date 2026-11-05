@@ -97,10 +97,12 @@ input::placeholder {
   border-bottom: 1px solid var(--line);
   flex-shrink: 0;
 }
-.app-icon {
-  width: 29px;
-  height: 29px;
-  border-radius: 8px;
+.app-logo {
+  width: 40px;
+  height: 30px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: brightness(0) invert(1);
 }
 .project-title {
   flex: 1;

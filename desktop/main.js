@@ -197,6 +197,19 @@ function startPresentation(displayId) {
     "publikum.html",
   );
   audienceWindow = win;
+  const fullscreenChanged = () => {
+    win.setMenuBarVisibility(false);
+    win.webContents.send("audience:fullscreen", win.isFullScreen());
+  };
+  win.on("enter-full-screen", fullscreenChanged);
+  win.on("leave-full-screen", fullscreenChanged);
+  win.webContents.on("before-input-event", (event, input) => {
+    if (input.type !== "keyDown" || input.isAutoRepeat) return;
+    if (input.key === "F11" || (input.key === "Escape" && win.isFullScreen())) {
+      event.preventDefault();
+      win.setFullScreen(!win.isFullScreen());
+    }
+  });
   presentation = { ...presentation, running: true, displayId };
   if (blocker === null)
     blocker = powerSaveBlocker.start("prevent-display-sleep");
@@ -651,6 +664,20 @@ else {
         )
           throw new Error("Ingen tilgang.");
         return state();
+      });
+      ipcMain.handle("audience:fullscreen", (event, action) => {
+        if (
+          !audienceWindow || audienceWindow.isDestroyed() ||
+          event.sender !== audienceWindow.webContents ||
+          event.senderFrame !== event.sender.mainFrame ||
+          event.senderFrame.url !== pathToFileURL(path.join(UI, "publikum.html")).href
+        )
+          throw new Error("Ingen tilgang.");
+        if (action === "toggle") {
+          audienceWindow.setMenuBarVisibility(false);
+          audienceWindow.setFullScreen(!audienceWindow.isFullScreen());
+        } else if (action !== "get") throw new Error("Ukjent handling.");
+        return audienceWindow.isFullScreen();
       });
       ipcMain.handle("project:command", async (event, action, payload) => {
         if (

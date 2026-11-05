@@ -249,22 +249,5 @@
       }
       window.musikk.command(action).catch((error) => notice(error.message));
     });
-  } else if (!new URLSearchParams(location.search).has("preview")) {
-    const button = document.createElement("button");
-    button.className = "browser-fullscreen";
-    button.textContent = "Fullskjerm";
-    button.onclick = () =>
-      document.documentElement.requestFullscreen().catch(() => {});
-    document.body.append(button);
-    const updateButton = () => {
-      button.hidden =
-        !!document.fullscreenElement ||
-        document.body.classList.contains("blackout");
-    };
-    document.addEventListener("fullscreenchange", updateButton);
-    new MutationObserver(updateButton).observe(document.body, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
   }
 })();

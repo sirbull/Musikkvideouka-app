@@ -66,9 +66,13 @@ Et regnestykke som starter med en operator, regnes fra gjeldende poengsum. Start
 
 Forhåndsvisningen er alltid synlig ved siden av gruppene. Dra den loddrette skillelinjen mellom listen og forhåndsvisningen for å endre bredden. Fordelingen huskes lokalt på maskinen. Dobbeltklikk linjen for å tilbakestille. Linjen kan også velges med Tab og flyttes med piltastene; Home/End går til minste/største listebredde. Grupperadene er kompakte, slik at flere lag er synlige samtidig.
 
+Logoen fra `DESIGN/logo.svg` vises sammen med tittelen i publikumsvisningen, finalen og forhåndsvisningen. Skriv ønsket tekst, for eksempel «Musikkvideouka 2026», i prosjektnavnet øverst i kontrollpanelet. Logo og tekst sentreres som én enhet. Tittelen lagres automatisk i prosjektet og kan angres.
+
 **Pause**, **Svart skjerm** og **Poengtavle** blir tilgjengelige når publikumsvisningen er startet. `F11` veksler fullskjerm i det aktive vinduet. **Visning → Animasjoner** slår bevegelse av eller på. Hvis en publikumsmonitor kobles fra, lukkes publikumsvisningen og kan startes igjen fra kontrollpanelet. Tomme gruppenavn vises ikke til publikum.
 
-Når alle poeng er telt, velg **Ferdig** under forhåndsvisningen. Uferdige poengberegninger bekreftes først. Vinneren vises med stort bilde, navn og poengsum, med animert innkomst, lys og konfetti. Ved delt førsteplass vises vinnerlagene etter tur. Mangler laget et bilde, vises en pokal. Finalen blir stående til du velger **Tilbake til poengtavlen** eller en annen visning. Animasjonsinnstillingen gjelder også finalen.
+Når alle poeng er telt, velg **Ferdig** under forhåndsvisningen. Uferdige poengberegninger bekreftes først. Vinneren vises med stort bilde i midten, navn og poengsum, med animert innkomst, lys og konfetti. Andreplassen står til venstre med et mindre bilde og sølvkant, tredjeplassen til høyre med bronsekant. Ved delt plassering vises lagene på den plassen etter tur. To lag på førsteplass følges av tredjeplass. Mangler laget et bilde, vises en pokal. Finalen blir stående til du velger **Tilbake til poengtavlen** eller en annen visning. Animasjonsinnstillingen gjelder også finalen.
+
+I publikumsvinduet kan du velge **Fullskjerm** nederst til høyre. Fullskjerm skjuler vindusrammen, toppmenyen og selve knappen. Trykk **Esc** eller **F11** for å gå tilbake til vinduet. Knappen vises ikke i forhåndsvisningen eller på svart skjerm.
 
 ## Prosjektfiler og lagring
 
@@ -120,7 +124,7 @@ EXE-testing er satt til side foreløpig. `npm run dist` kan senere bygge en port
 
 Byggmiljøet i denne økten avviste kjøring av den midlertidige NSIS-avinstallereren med `spawn EPERM`. Den separate installasjonspakken er derfor ikke verifisert her. Det portable bygget trenger ikke denne byggoperasjonen. Automatiske app-tester starter den faktiske Electron-appen med skjulte testvinduer, isolert brukerdata og skjermbilder i `test-results/`; de inkluderer en omstart og en simulert lagringsfeil.
 
-Ikonet finnes som `assets/icon-source.png`, `assets/icon.png` og `assets/icon.ico`. `npm run icons` gjenskaper størrelsene fra originalen. Genereringsprompt og visuell retning er dokumentert i `assets/design.md`.
+Logoen er `DESIGN/logo.svg`. `npm run icons` kopierer SVG-logoen til `public/brand/` og lager gjennomsiktige, lyse appikoner i `assets/icon.png`, `assets/icon.ico` og `public/brand/icon.png`. Visuell retning er dokumentert i `assets/design.md`.
 
 ## Teknisk oppsett
 

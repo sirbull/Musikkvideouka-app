@@ -6,7 +6,9 @@ Kontrollpanelet består av en redigerbar prosjekttittel, en enkel gruppeliste og
 
 Referanse: `origin/main` / `a59b343` og medaljestilene fra `1742de4`. Main hadde `.vinner`, `.solv` og `.bronse`, med større førsteplass, men også to kolonner. Oppsettet er nå endret til full bredde etter brukerens beskrivelse; kraftig pulserende glow er erstattet med rolig metallglans. Både metallglans og bakgrunn følger innstillingen for redusert bevegelse.
 
-Appikonet kombinerer tre stigende stolper fra en equalizer/poengpall med et avspillingssymbol. Ikonet ble laget med den innebygde imagegen-funksjonen. Originalen er `icon-source.png`; installasjonsikon, vindusikon og grensesnittvariant lages av `npm run icons`.
+Appen bruker nå brukerens logo fra `DESIGN/logo.svg`. SVG-originalen bevares som levert. I det mørke grensesnittet vises den i hvitt, med den redigerbare prosjekttittelen ved siden av. Logo og tekst sentreres samlet i publikumsvisningen og finalen. Pauseskjermen bruker samme kombinasjon. `npm run icons` kopierer logoen til `public/brand/logo.svg` og lager hvite vindus- og appikoner på gjennomsiktig bakgrunn.
+
+Det tidligere ikonet nedenfor er bevart som historikk i `icon-source.png` og brukes ikke som kilde ved ikonbygging.
 
 Genereringsprompt:
 
