@@ -9,17 +9,27 @@ let displayed = null,
   pending = [],
   processing = false,
   epoch = 0,
-  latestState = null;
+  latestState = null,
+  laidOut = null;
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// The stage is designed at 1600 × 900 and scaled to fit. It grows in the free direction to match
+// the screen's aspect ratio, so the background and list fill any fullscreen format without bars.
 function scaleStage() {
-  stage.style.setProperty(
-    "--stage-scale",
-    Math.min(innerWidth / 1600, innerHeight / 900),
-  );
+  const scale = Math.min(innerWidth / 1600, innerHeight / 900);
+  const width = Math.max(1600, Math.round(innerWidth / scale));
+  const height = Math.max(900, Math.round(innerHeight / scale));
+  const resized = stage.offsetWidth !== width || stage.offsetHeight !== height;
+  stage.style.setProperty("--stage-scale", scale);
+  stage.style.width = `${width}px`;
+  stage.style.height = `${height}px`;
+  // Use the most recently laid-out document: `displayed` lags behind while a score transition runs.
+  if (resized && laidOut) {
+    headings(laidOut);
+    layout(laidOut, false, epoch);
+  }
 }
 addEventListener("resize", scaleStage);
-scaleStage();
 
 function rowFor(group, still) {
   let row = nodes.get(group.id);
@@ -63,6 +73,7 @@ function showPoints(row, value) {
 }
 
 function layout(doc, animate, token) {
+  laidOut = doc;
   const list = ranked(doc.groups);
   const count = list.length;
   const minimumGap = count > 20 ? 4 : count > 12 ? 7 : 11;
@@ -278,3 +289,4 @@ if (preview) {
   window.musikk.onState(receive);
   window.musikk.getState().then(receive);
 }
+scaleStage();

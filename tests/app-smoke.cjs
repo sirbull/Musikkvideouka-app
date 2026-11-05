@@ -1005,6 +1005,26 @@ async function run() {
   );
   await screenshot(control, "control-compact.png");
   control.setSize(1500, 980);
+  const audienceSize = audience.getContentSize();
+  for (const [width, height] of [[1280, 800], [1600, 1200], [2100, 900]]) {
+    audience.setContentSize(width, height);
+    await until(
+      () => js(audience, `(() => {
+        const stage = document.querySelector('#stage').getBoundingClientRect();
+        const board = document.querySelector('#board');
+        return innerWidth === ${width} && Math.abs(stage.left) < 1 && Math.abs(stage.top) < 1 &&
+          Math.abs(stage.right - innerWidth) < 1 && Math.abs(stage.bottom - innerHeight) < 1 &&
+          [...document.querySelectorAll('.stage-row')].every(r => r.offsetTop + r.offsetHeight <= board.clientHeight + 1 && Math.abs(r.offsetWidth - board.clientWidth) < 1);
+      })()`),
+      `stage fills a ${width} × ${height} window`,
+    );
+  }
+  await screenshot(audience, "audience-ultrawide.png");
+  audience.setContentSize(1280, 800);
+  await delay(250);
+  await screenshot(audience, "audience-16x10.png");
+  audience.setContentSize(...audienceSize);
+  check("audience background and list fill 16:10, 4:3 and ultrawide windows without bars");
   await command(control, "motion", { enabled: false });
   for (let i = 12; i < 48; i++)
     await command(control, "add-group", { name: `Gruppe ${i + 1}` });

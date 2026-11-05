@@ -17,13 +17,17 @@
   }
 
   function confetti() {
+    // Match the canvas to the stage, which is wider or taller than 1600 × 900 on other screen formats.
+    canvas.width = canvas.offsetWidth || 1600;
+    canvas.height = canvas.offsetHeight || 900;
+    const width = canvas.width, height = canvas.height;
     const colors = ["#ffdc78", "#fff1be", "#ffffff", "#60d7ed", "#dba549"];
     const particles = Array.from({ length: 330 }, (_, index) => {
       const burst = index < 200;
       const left = index % 2 === 0;
       return {
-        x: burst ? (left ? 30 : 1570) : Math.random() * 1600,
-        y: burst ? 900 : -30 - Math.random() * 500,
+        x: burst ? (left ? 30 : width - 30) : Math.random() * width,
+        y: burst ? height : -30 - Math.random() * 500,
         vx: burst ? (left ? 1 : -1) * (180 + Math.random() * 680) : (Math.random() - 0.5) * 100,
         vy: burst ? -650 - Math.random() * 580 : 50 + Math.random() * 100,
         angle: Math.random() * Math.PI,
@@ -39,10 +43,10 @@
       const elapsed = (now - started) / 1000;
       const dt = Math.min((now - previous) / 1000, 0.04);
       previous = now;
-      context.clearRect(0, 0, 1600, 900);
+      context.clearRect(0, 0, width, height);
       context.globalAlpha = Math.min(1, Math.max(0, 11 - elapsed));
       for (const p of particles) {
-        if (elapsed < p.delay || p.y > 940) continue;
+        if (elapsed < p.delay || p.y > height + 40) continue;
         p.vy += 270 * dt;
         p.vx *= Math.exp(-0.18 * dt);
         p.x += p.vx * dt;
@@ -58,7 +62,7 @@
       context.globalAlpha = 1;
       if (elapsed < 11) frame = requestAnimationFrame(draw);
       else {
-        context.clearRect(0, 0, 1600, 900);
+        context.clearRect(0, 0, width, height);
         frame = null;
       }
     }

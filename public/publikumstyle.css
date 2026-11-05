@@ -501,8 +501,8 @@ body {
   position: absolute;
   left: 0;
   top: -76px;
-  width: 1600px;
-  height: 900px;
+  width: 100%;
+  height: calc(100% + 76px);
   pointer-events: none;
 }
 @keyframes winner-rays {
